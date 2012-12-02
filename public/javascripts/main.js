@@ -1,5 +1,5 @@
 (function() {
-  var Game, getContext, onEachFrame;
+  var Entity, Game, World, getContext, myPlaneId, onEachFrame, time;
 
   getContext = function() {
     var ctx;
@@ -9,21 +9,89 @@
     return ctx;
   };
 
-  Game = (function() {
+  myPlaneId = null;
 
-    function Game() {
-      this.ctx = getContext();
+  now.updateBullet = function(bullet) {
+    return console.log(bullet);
+  };
+
+  now.updatePlane = function(plane) {
+    if (plane.id === myPlaneId) {
+      return new Player(plane);
+    } else {
+      return new Plane(plane);
+    }
+  };
+
+  now.notifyMyPlane = function(planeId) {
+    return myPlaneId = planeId;
+  };
+
+  time = function() {
+    return (new Date).getTime();
+  };
+
+  Entity = (function() {
+
+    function Entity(id) {
+      this.id = id;
     }
 
-    Game.prototype.gameloop = function() {
-      var ctx, h, w;
-      ctx = this.ctx;
-      w = ctx.canvas.width;
-      h = ctx.canvas.width;
-      ctx.beginPath();
-      ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 50 + 50, 0, 2 * 3.141592);
-      ctx.closePath();
-      return ctx.stroke();
+    return Entity;
+
+  })();
+
+  World = (function() {
+
+    function World() {}
+
+    World.prototype.update = function() {};
+
+    return World;
+
+  })();
+
+  Game = (function() {
+
+    function Game(fps) {
+      if (fps == null) fps = 60;
+      this.ctx = getContext();
+      this.fps = fps;
+      this.nextGameTick = time();
+      this.fpsData = [];
+      this.skipTicks = 1000.0 / fps;
+      this.world = new World;
+      now.helloServer();
+    }
+
+    Game.prototype.update = function() {
+      return this.world.update();
+    };
+
+    Game.prototype.render = function() {
+      var currentTime, idx, testrender;
+      testrender = function(ctx) {
+        var h, w;
+        w = ctx.canvas.width;
+        h = ctx.canvas.height;
+        ctx.beginPath();
+        ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 50 + 50, 0, 2 * 3.141592);
+        ctx.closePath();
+        return ctx.stroke();
+      };
+      testrender(this.ctx);
+      currentTime = time();
+      idx = 0;
+      while (idx < this.fpsData.length) {
+        if (this.fpsData[idx] + 1000 < currentTime) {
+          this.fpsData[idx] = this.fpsData[this.fpsData.length - 1];
+          this.fpsData.pop();
+        } else {
+          idx += 1;
+        }
+      }
+      this.fpsData.push(currentTime);
+      return $("#fpsText").text(this.fpsData.length);
     };
 
     Game.prototype.start = function() {
@@ -31,6 +99,18 @@
       return onEachFrame(function() {
         return _this.gameloop();
       });
+    };
+
+    Game.prototype.gameloop = function() {
+      var MAX_FRAME_SKIP, updateProcessed;
+      updateProcessed = 0;
+      MAX_FRAME_SKIP = 10;
+      while (time() > this.nextGameTick && updateProcessed < MAX_FRAME_SKIP) {
+        this.update();
+        updateProcessed += 1;
+        this.nextGameTick += this.skipTicks;
+      }
+      if (updateProcessed) return this.render();
     };
 
     return Game;
@@ -63,8 +143,10 @@
     };
   }
 
-  $(document).ready(function() {
-    return new Game().start();
+  now.ready(function() {
+    return $(document).ready(function() {
+      return new Game().start();
+    });
   });
 
 }).call(this);

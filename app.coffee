@@ -23,7 +23,7 @@ app.configure ->
   app.use(express.methodOverride())
   app.use(express.cookieParser('jfj32*#&hfi83*#*'))
   app.use(express.session({secret:'jfkj(32Hfi9('}))
-  app.use(require('express-coffee')({ path: __dirname + '/public',}))
+  app.use(require('express-coffee')({ debug:true,path: __dirname + '/public',}))
   app.use(app.router)
   app.use(express.static(path.join(__dirname, 'public')))
 
@@ -38,6 +38,13 @@ app.get '/', (req, res)->
 everyone = nowjs.initialize app
 enow = everyone.now
 enow.users = []
+
+planeId = 1
+
+enow.helloServer = ->
+	console.log 'new user',@user.clientId
+	@user.id = planeId
+	planeId += 1
 
 tools = require './public/coffeescripts/tools.coffee'
 
