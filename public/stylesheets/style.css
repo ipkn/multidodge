@@ -1,0 +1,1166 @@
+/*
+ * HTML5 Boilerplate
+ *
+ * What follows is the result of much research on cross-browser styling.
+ * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
+ * Kroc Camen, and the H5BP dev community and team.
+ */
+
+
+/* =============================================================================
+   HTML5 element display
+   ========================================================================== */
+
+article, aside, details, figcaption, figure, footer, header, hgroup, nav, section { display: block; }
+audio[controls], canvas, video { display: inline-block; *display: inline; *zoom: 1; }
+
+
+/* =============================================================================
+   Base
+   ========================================================================== */
+
+/*
+ * 1. Correct text resizing oddly in IE6/7 when body font-size is set using em units
+ *    http://clagnut.com/blog/348/#c790
+ * 2. Force vertical scrollbar in non-IE
+ * 3. Remove Android and iOS tap highlight color to prevent entire container being highlighted
+ *    www.yuiblog.com/blog/2010/10/01/quick-tip-customizing-the-mobile-safari-tap-highlight-color/
+ * 4. Prevent iOS text size adjust on device orientation change, without disabling user zoom
+ *    www.456bereastreet.com/archive/201012/controlling_text_size_in_safari_for_ios_without_disabling_user_zoom/
+ */
+
+html { font-size: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; -webkit-tap-highlight-color: rgba(0,0,0,0); -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+
+body { margin: 0; font-size: 13px; line-height: 1.231; }
+
+body, button, input, select, textarea { font-family: sans-serif; color: #222; }
+
+/* 
+ * These selection declarations have to be separate
+ * No text-shadow: twitter.com/miketaylr/status/12228805301
+ * Also: hot pink!
+ */
+
+::-moz-selection { background: #fe57a1; color: #fff; text-shadow: none; }
+::selection { background: #fe57a1; color: #fff; text-shadow: none; }
+
+
+/* =============================================================================
+   Links
+   ========================================================================== */
+
+a { color: #00e; }
+a:visited { color: #551a8b; }
+a:focus { outline: thin dotted; }
+
+/* Improve readability when focused and hovered in all browsers: people.opera.com/patrickl/experiments/keyboard/test */
+a:hover, a:active { outline: 0; }
+
+
+/* =============================================================================
+   Typography
+   ========================================================================== */
+
+abbr[title] { border-bottom: 1px dotted; }
+
+b, strong { font-weight: bold; }
+
+blockquote { margin: 1em 40px; }
+
+dfn { font-style: italic; }
+
+hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin: 1em 0; padding: 0; }
+
+ins { background: #ff9; color: #000; text-decoration: none; }
+
+mark { background: #ff0; color: #000; font-style: italic; font-weight: bold; }
+
+/* Redeclare monospace font family: en.wikipedia.org/wiki/User:Davidgothberg/Test59 */
+pre, code, kbd, samp { font-family: monospace, monospace; _font-family: 'courier new', monospace; font-size: 1em; }
+
+/* Improve readability of pre-formatted text in all browsers */
+pre { white-space: pre; white-space: pre-wrap; word-wrap: break-word; }
+
+q { quotes: none; }
+q:before, q:after { content: ""; content: none; }
+
+small { font-size: 85%; }
+
+/* Position subscript and superscript content without affecting line-height: gist.github.com/413930 */
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+sup { top: -0.5em; }
+sub { bottom: -0.25em; }
+
+
+/* =============================================================================
+   Lists
+   ========================================================================== */
+
+ul, ol { margin: 1em 0; padding: 0 0 0 40px; }
+dd { margin: 0 0 0 40px; }
+nav ul, nav ol { list-style: none; margin: 0; padding: 0; }
+
+
+/* =============================================================================
+   Embedded content
+   ========================================================================== */
+
+/*
+ * Improve image quality when scaled in IE7
+ * code.flickr.com/blog/2008/11/12/on-ui-quality-the-little-things-client-side-image-resizing/
+ */
+
+img { border: 0; -ms-interpolation-mode: bicubic; }
+
+/*
+ * Correct overflow displayed oddly in IE9 
+ */
+
+svg:not(:root) {
+    overflow: hidden;
+}
+
+
+/* =============================================================================
+   Figures
+   ========================================================================== */
+
+figure { margin: 0; }
+
+
+/* =============================================================================
+   Forms
+   ========================================================================== */
+
+form { margin: 0; }
+fieldset { border: 0; margin: 0; padding: 0; }
+
+/* 
+ * 1. Correct color not inheriting in IE6/7/8/9 
+ * 2. Correct alignment displayed oddly in IE6/7 
+ */
+
+legend { border: 0; *margin-left: -7px; padding: 0; }
+
+/* Indicate that 'label' will shift focus to the associated form element */
+label { cursor: pointer; }
+
+/*
+ * 1. Correct font-size not inheriting in all browsers
+ * 2. Remove margins in FF3/4 S5 Chrome
+ * 3. Define consistent vertical alignment display in all browsers
+ */
+
+button, input, select, textarea { font-size: 100%; margin: 0; vertical-align: baseline; *vertical-align: middle; }
+
+/*
+ * 1. Define line-height as normal to match FF3/4 (set using !important in the UA stylesheet)
+ * 2. Correct inner spacing displayed oddly in IE6/7
+ */
+
+button, input { line-height: normal; *overflow: visible; }
+
+/*
+ * 1. Display hand cursor for clickable form elements
+ * 2. Allow styling of clickable form elements in iOS
+ */
+
+button, input[type="button"], input[type="reset"], input[type="submit"] { cursor: pointer; -webkit-appearance: button; }
+
+/*
+ * Consistent box sizing and appearance
+ */
+
+input[type="checkbox"], input[type="radio"] { box-sizing: border-box; }
+input[type="search"] { -moz-box-sizing: content-box; -webkit-box-sizing: content-box; box-sizing: content-box; }
+
+/* 
+ * Remove inner padding and border in FF3/4
+ * www.sitepen.com/blog/2008/05/14/the-devils-in-the-details-fixing-dojos-toolbar-buttons/ 
+ */
+
+button::-moz-focus-inner, input::-moz-focus-inner { border: 0; padding: 0; }
+
+/* Remove default vertical scrollbar in IE6/7/8/9 */
+textarea { overflow: auto; vertical-align: top; }
+
+/* Colors for form validity */
+input:valid, textarea:valid {  }
+input:invalid, textarea:invalid { background-color: #f0dddd; }
+
+
+/* =============================================================================
+   Tables
+   ========================================================================== */
+
+table { border-collapse: collapse; border-spacing: 0; }
+
+
+/* =============================================================================
+   Primary styles
+   Author: JongMan Koo
+   ========================================================================== */
+
+body {
+	width:100%;
+	height:100%;
+	margin:0px;
+/*	background: url(background.jpg) repeat;*/
+}
+
+body, textarea, input, select, button { font-family: Helvetica, NanumGothic,나눔고딕,맑은고딕,Dotum; }
+
+.card { background-image: url(cards_all.png); float: left; }
+.card.vertical { width: 71px; height: 96px; }
+.card.horizontal { width: 96px; height: 71px; }
+
+.card.horizontal.back { background-position: -0px -13px; }
+.card.horizontal.c1 { background-position: -96px -13px; }
+.card.horizontal.c2 { background-position: -192px -13px; }
+.card.horizontal.c3 { background-position: -288px -13px; }
+.card.horizontal.c4 { background-position: -384px -13px; }
+.card.horizontal.c5 { background-position: -480px -13px; }
+.card.horizontal.c6 { background-position: -576px -13px; }
+.card.horizontal.c7 { background-position: -672px -13px; }
+.card.horizontal.c8 { background-position: -768px -13px; }
+.card.horizontal.c9 { background-position: -864px -13px; }
+.card.horizontal.cj { background-position: -960px -13px; }
+.card.horizontal.ck { background-position: -0px -109px; }
+.card.horizontal.cq { background-position: -96px -109px; }
+.card.horizontal.ct { background-position: -192px -109px; }
+.card.horizontal.d1 { background-position: -288px -109px; }
+.card.horizontal.d2 { background-position: -384px -109px; }
+.card.horizontal.d3 { background-position: -480px -109px; }
+.card.horizontal.d4 { background-position: -576px -109px; }
+.card.horizontal.d5 { background-position: -672px -109px; }
+.card.horizontal.d6 { background-position: -768px -109px; }
+.card.horizontal.d7 { background-position: -864px -109px; }
+.card.horizontal.d8 { background-position: -960px -109px; }
+.card.horizontal.d9 { background-position: -0px -205px; }
+.card.horizontal.dj { background-position: -96px -205px; }
+.card.horizontal.dk { background-position: -192px -205px; }
+.card.horizontal.dq { background-position: -288px -205px; }
+.card.horizontal.dt { background-position: -384px -205px; }
+.card.horizontal.ec { background-position: -480px -205px; }
+.card.horizontal.h1 { background-position: -576px -205px; }
+.card.horizontal.h2 { background-position: -672px -205px; }
+.card.horizontal.h3 { background-position: -768px -205px; }
+.card.horizontal.h4 { background-position: -864px -205px; }
+.card.horizontal.h5 { background-position: -960px -205px; }
+.card.horizontal.h6 { background-position: -0px -301px; }
+.card.horizontal.h7 { background-position: -96px -301px; }
+.card.horizontal.h8 { background-position: -192px -301px; }
+.card.horizontal.h9 { background-position: -288px -301px; }
+.card.horizontal.hj { background-position: -384px -301px; }
+.card.horizontal.hk { background-position: -480px -301px; }
+.card.horizontal.hq { background-position: -576px -301px; }
+.card.horizontal.ht { background-position: -672px -301px; }
+.card.horizontal.jb { background-position: -768px -301px; }
+.card.horizontal.jr { background-position: -864px -301px; }
+.card.horizontal.s1 { background-position: -960px -301px; }
+.card.horizontal.s2 { background-position: -0px -397px; }
+.card.horizontal.s3 { background-position: -96px -397px; }
+.card.horizontal.s4 { background-position: -192px -397px; }
+.card.horizontal.s5 { background-position: -288px -397px; }
+.card.horizontal.s6 { background-position: -384px -397px; }
+.card.horizontal.s7 { background-position: -480px -397px; }
+.card.horizontal.s8 { background-position: -576px -397px; }
+.card.horizontal.s9 { background-position: -672px -397px; }
+.card.horizontal.sj { background-position: -768px -397px; }
+.card.horizontal.sk { background-position: -864px -397px; }
+.card.horizontal.sq { background-position: -960px -397px; }
+.card.horizontal.st { background-position: -0px -493px; }
+.card.vertical.back { background-position: -109px -480px; }
+.card.vertical.c1 { background-position: -205px -480px; }
+.card.vertical.c2 { background-position: -301px -480px; }
+.card.vertical.c3 { background-position: -397px -480px; }
+.card.vertical.c4 { background-position: -493px -480px; }
+.card.vertical.c5 { background-position: -589px -480px; }
+.card.vertical.c6 { background-position: -685px -480px; }
+.card.vertical.c7 { background-position: -781px -480px; }
+.card.vertical.c8 { background-position: -877px -480px; }
+.card.vertical.c9 { background-position: -973px -480px; }
+.card.vertical.cj { background-position: -13px -576px; }
+.card.vertical.ck { background-position: -109px -576px; }
+.card.vertical.cq { background-position: -205px -576px; }
+.card.vertical.ct { background-position: -301px -576px; }
+.card.vertical.d1 { background-position: -397px -576px; }
+.card.vertical.d2 { background-position: -493px -576px; }
+.card.vertical.d3 { background-position: -589px -576px; }
+.card.vertical.d4 { background-position: -685px -576px; }
+.card.vertical.d5 { background-position: -781px -576px; }
+.card.vertical.d6 { background-position: -877px -576px; }
+.card.vertical.d7 { background-position: -973px -576px; }
+.card.vertical.d8 { background-position: -13px -672px; }
+.card.vertical.d9 { background-position: -109px -672px; }
+.card.vertical.dj { background-position: -205px -672px; }
+.card.vertical.dk { background-position: -301px -672px; }
+.card.vertical.dq { background-position: -397px -672px; }
+.card.vertical.dt { background-position: -493px -672px; }
+.card.vertical.ec { background-position: -589px -672px; }
+.card.vertical.h1 { background-position: -685px -672px; }
+.card.vertical.h2 { background-position: -781px -672px; }
+.card.vertical.h3 { background-position: -877px -672px; }
+.card.vertical.h4 { background-position: -973px -672px; }
+.card.vertical.h5 { background-position: -13px -768px; }
+.card.vertical.h6 { background-position: -109px -768px; }
+.card.vertical.h7 { background-position: -205px -768px; }
+.card.vertical.h8 { background-position: -301px -768px; }
+.card.vertical.h9 { background-position: -397px -768px; }
+.card.vertical.hj { background-position: -493px -768px; }
+.card.vertical.hk { background-position: -589px -768px; }
+.card.vertical.hq { background-position: -685px -768px; }
+.card.vertical.ht { background-position: -781px -768px; }
+.card.vertical.jb { background-position: -877px -768px; }
+.card.vertical.jr { background-position: -973px -768px; }
+.card.vertical.s1 { background-position: -13px -864px; }
+.card.vertical.s2 { background-position: -109px -864px; }
+.card.vertical.s3 { background-position: -205px -864px; }
+.card.vertical.s4 { background-position: -301px -864px; }
+.card.vertical.s5 { background-position: -397px -864px; }
+.card.vertical.s6 { background-position: -493px -864px; }
+.card.vertical.s7 { background-position: -589px -864px; }
+.card.vertical.s8 { background-position: -685px -864px; }
+.card.vertical.s9 { background-position: -781px -864px; }
+.card.vertical.sj { background-position: -877px -864px; }
+.card.vertical.sk { background-position: -973px -864px; }
+.card.vertical.sq { background-position: -13px -960px; }
+.card.vertical.st { background-position: -109px -960px; }
+.card.chosen {
+	opacity: 0.7;
+	-moz-opacity: 0.7;
+	-webkit-opacity: 0.7;
+}
+.card.canChoose {
+	cursor: hand;
+	cursor: pointer;
+}
+
+a, a:visited {
+	text-decoration: none;
+	color: #AE432E;
+}
+
+a:hover {
+	color: #2E43AE;
+}
+
+#statusbar {
+	font-size:15px;
+	font-weight:bold;
+	position: relative;
+	width: 800px;
+	height: 35px;
+	margin: 20px;
+	overflow: hidden;
+	background-color: rgba(196, 196, 196, 0.6);
+	border: 1px solid #666;
+	box-shadow: 0 0 8px #333;
+}
+
+#statusbar .left {
+	margin-left:10px;
+	float:left;
+	height: 35px;
+	line-height: 35px;
+}
+#statusbar .right {
+	float:right;
+	height: 35px;
+	line-height: 35px;
+}
+
+#chatbox {
+	position:absolute;
+	left:820px;
+	width:400px;
+	height:600px;
+	margin: 20px;
+	overflow: visible;
+	background-color: rgba(196, 196, 196, 0.6);
+	border: 1px solid #666;
+	box-shadow: 0 0 8px #333;
+	font-size:16px;
+}
+
+#chatbox .me {
+	/*border-bottom: 1px solid white;*/
+	font-weight:bold;
+}
+
+#chatbox .player {
+	color: #AE432E;
+}
+
+#chatbox .ruler {
+	color:cyan;
+}
+
+#chatbox .friend {
+	color:#a6ffb3;
+}
+
+#chatbox .content {
+	height:582px;
+	overflow-y:auto;
+	word-wrap:break-word;
+	line-height:1.1em;
+}
+#chatbox .content.reduced {
+	height:482px;
+	overflow-y:auto;
+	word-wrap:break-word;
+	line-height:1.1em;
+}
+#chatbox .toggle_member_list {
+	position: absolute;
+	top:0px;
+	right:0px;
+	font-size:10px;
+	font-weight:bold;
+}
+#chatbox .member_list {
+	display:none;
+	font-size:13px;
+	border:1px;
+	right:0px;
+	height:100px;
+	overflow-y:auto;
+}
+#chatbox .toggle_size {
+	position: absolute;
+	top:40%;
+	height:20%;
+	left:100%;
+	font-size:10px;
+	padding:0px;
+}
+
+#chatbox .value {
+	width:100%;
+	position:absolute;
+	bottom:0px;
+	border:0px;
+	padding:0px;
+}
+
+#playing_field {
+	position: relative;
+	width: 800px;
+	height: 600px;
+	margin: 20px;
+	overflow: hidden;
+	position: relative;
+	background-color: rgba(196, 196, 196, 0.6);
+	border: 1px solid #666;
+	box-shadow: 0 0 8px #333;
+}
+
+.ie8 body #playing_field {
+	background-color: #999999;
+}
+
+#playing_field #global_message {
+	position: absolute;
+	width: 500px;
+	top: 190px;
+	left: 150px;
+	text-align: center;
+	font-weight: bold;
+	font-size: 20px;
+	color: #fff;
+	text-shadow: 1px 1px 6px #fff;
+}
+
+.smallcard {
+	display:inline-block;
+	padding: 2px;
+	width:37px;
+	height:20px;
+	line-height:20px;
+	vertical-align:bottom;
+	text-align:center;
+	margin: 4px;
+	background-color: rgba(255, 255, 255, 0.9);
+	font-size:14px;
+	font-weight:bold;
+	border-radius: 2px;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	box-shadow: 0px 0px 8px #444;
+	-moz-box-shadow: 0px 0px 8px #444;
+	-webkit-box-shadow: 0px 0px 8px #444;
+}
+
+.smallcard.rulercard {
+	background-color: rgba(150, 255, 255, 0.9);
+}
+
+.smallcard.friendcard {
+	background-color: rgba(166, 255, 206, 0.9);
+}
+
+.smallcard.dark {
+	background-color: rgba(170, 170, 170, 0.9);
+}
+
+.smallcard.inline {
+	display:inline;
+	vertical-align:baseline;
+}
+
+.smallcard.winner {
+	border:2px outset #80F;
+}
+
+.smallcard.d, .smallcard.h, .smallcard.c, .smallcard.s, .smallcard.n {
+	background-color: transparent;
+	display:inline;
+	vertical-align:baseline;
+	width:auto;
+	height:auto;
+	font-size:18px;
+	border-radius: 0px;
+	-moz-border-radius: 0px;
+	-webkit-border-radius: 0px;
+	box-shadow: 0px 0px 0px #444;
+	-moz-box-shadow: 0px 0px 0px #444;
+	-webkit-box-shadow: 0px 0px 0px #444;
+	}
+
+.smallcard:first-letter { font-size:16px; }
+
+.smallcard.jr:before { content: "Joker"; color:darkorange;font-size:12px;}
+.smallcard.n:before { content: "노기"; }
+.smallcard.s:before { content: "\002660"; }
+.smallcard.s1:before { content: "\002660\000020A"; }
+.smallcard.s2:before { content: "\002660\0000202"; }
+.smallcard.s3:before { content: "\002660\0000203"; }
+.smallcard.s4:before { content: "\002660\0000204"; }
+.smallcard.s5:before { content: "\002660\0000205"; }
+.smallcard.s6:before { content: "\002660\0000206"; }
+.smallcard.s7:before { content: "\002660\0000207"; }
+.smallcard.s8:before { content: "\002660\0000208"; }
+.smallcard.s9:before { content: "\002660\0000209"; }
+.smallcard.st:before { content: "\002660\00002010"; }
+.smallcard.sj:before { content: "\002660\000020J"; }
+.smallcard.sq:before { content: "\002660\000020Q"; }
+.smallcard.sk:before { content: "\002660\000020K"; }
+.smallcard.c:before { content: "\002663"; }
+.smallcard.c1:before { content: "\002663\000020A"; }
+.smallcard.c2:before { content: "\002663\0000202"; }
+.smallcard.c3:before { content: "\002663\0000203"; }
+.smallcard.c4:before { content: "\002663\0000204"; }
+.smallcard.c5:before { content: "\002663\0000205"; }
+.smallcard.c6:before { content: "\002663\0000206"; }
+.smallcard.c7:before { content: "\002663\0000207"; }
+.smallcard.c8:before { content: "\002663\0000208"; }
+.smallcard.c9:before { content: "\002663\0000209"; }
+.smallcard.ct:before { content: "\002663\00002010"; }
+.smallcard.cj:before { content: "\002663\000020J"; }
+.smallcard.cq:before { content: "\002663\000020Q"; }
+.smallcard.ck:before { content: "\002663\000020K"; }
+.smallcard.h:before { content: "\002665"; color:red; }
+.smallcard.h1:before { content: "\002665\000020A"; color:red; }
+.smallcard.h2:before { content: "\002665\0000202"; color:red; }
+.smallcard.h3:before { content: "\002665\0000203"; color:red;}
+.smallcard.h4:before { content: "\002665\0000204"; color:red;}
+.smallcard.h5:before { content: "\002665\0000205"; color:red;}
+.smallcard.h6:before { content: "\002665\0000206"; color:red;}
+.smallcard.h7:before { content: "\002665\0000207"; color:red;}
+.smallcard.h8:before { content: "\002665\0000208"; color:red;}
+.smallcard.h9:before { content: "\002665\0000209"; color:red;}
+.smallcard.ht:before { content: "\002665\00002010"; color:red;}
+.smallcard.hj:before { content: "\002665\000020J"; color:red;}
+.smallcard.hq:before { content: "\002665\000020Q"; color:red;}
+.smallcard.hk:before { content: "\002665\000020K"; color:red;}
+.smallcard.d:before { content: "\002666"; color:red; }
+.smallcard.d1:before { content: "\002666\000020A"; color:red; }
+.smallcard.d2:before { content: "\002666\0000202"; color:red; }
+.smallcard.d3:before { content: "\002666\0000203"; color:red;}
+.smallcard.d4:before { content: "\002666\0000204"; color:red;}
+.smallcard.d5:before { content: "\002666\0000205"; color:red;}
+.smallcard.d6:before { content: "\002666\0000206"; color:red;}
+.smallcard.d7:before { content: "\002666\0000207"; color:red;}
+.smallcard.d8:before { content: "\002666\0000208"; color:red;}
+.smallcard.d9:before { content: "\002666\0000209"; color:red;}
+.smallcard.dt:before { content: "\002666\00002010"; color:red;}
+.smallcard.dj:before { content: "\002666\000020J"; color:red;}
+.smallcard.dq:before { content: "\002666\000020Q"; color:red;}
+.smallcard.dk:before { content: "\002666\000020K"; color:red;}
+.smallcard.invalid:before { content: "\002716"; color:red;}
+
+#dialog {
+	position: absolute;
+	height: 200px;
+	width: 400px;
+	text-align: center;
+	top: 220px;
+	left: 200px;
+	z-index: 99;
+}
+
+.ie8 #dialog > div {
+	background-color: #aaaaaa;
+	border: 1px solid black;
+}
+#dialog > div {
+	margin: 0px auto;
+	background-color: rgba(196, 196, 196, 0.9);
+	border: 1px solid silver;
+	color: #444;
+
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	box-shadow: 0px 0px 16px #444;
+	-moz-box-shadow: 0px 0px 16px #444;
+	-webkit-box-shadow: 0px 0px 16px #444;
+	padding: 8px;
+}
+
+#dialog .title {
+	font-size: 16px;
+	color: #444;
+	font-weight: bold;
+}
+
+#dialog button {
+	background: #eee;
+	border: 1px solid #888;
+	font-size: 14px;
+	font-weight: bold;
+	color: #222;
+	padding: 4px 8px;
+}
+
+#dialog button:hover {
+	color: black;
+	background-color: rgba(255, 255, 255, 0.5);
+}
+
+#dialog button:disabled,
+#dialog button[disabled="disabled"] {
+	color: #aaa;
+	border: 1px solid #aaa;
+}
+
+/* 딜미스시 패 보여주는 창 */
+#dealmiss_dialog {
+}
+
+#dealmiss_dialog .cards {
+	width: 251px;
+	height: 96px;
+	margin:auto;
+	position:relative;
+}
+
+#confirm_dialog {
+}
+
+#confirm_dialog .title{
+	margin-top: 13px;
+}
+
+#confirm_dialog ul {
+	list-style: none;
+	padding: 0px;
+}
+
+#confirm_dialog li {
+	margin: 0;
+	margin-left:4px;
+	margin-right:4px;
+	display: inline-block;
+}
+
+
+/* prompt 다이얼로그 */
+#prompt_dialog {
+	width: 300px;
+	left: 40px;
+	position:absolute;
+	z-index: 1050;
+}
+
+/* player list 다이얼로그 */
+#player_list_dialog {
+	width: 300px;
+	top: -100px;
+	left: 40px;
+	position:absolute;
+}
+
+#player_list_dialog ul {
+	list-style: none;
+	padding: 0px;
+}
+
+#player_list_dialog li {
+	text-align: center;
+}
+
+
+#player_list_dialog dl
+{
+	margin: 0;
+	width: 300px;
+}
+
+#player_list_dialog dt
+{
+	margin-left: 10px;
+	float: left;
+	overflow: hidden;
+}
+
+#player_list_dialog dd
+{
+	margin: 10px;
+	min-height: 40px;
+	width: 270px;
+	padding: 4px;
+	line-height: 150%;
+	background-color: rgba(0, 0, 0, 0.1);
+	border: 1px solid #999;
+
+	box-shadow: 0px 0px 8px #eee;
+	-moz-box-shadow: 0px 0px 8px #eee;
+	-webkit-box-shadow: 0px 0px 8px #eee;
+
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+
+#player_list_dialog ul li.unoccupied {
+	color: #fff;
+}
+
+/* 프렌드 고르기 */
+#choose_friend_dialog {
+	position: absolute;
+	top: -50px;
+	width: 400px;
+	margin: 0px auto;
+	padding: 0px;
+}
+
+#choose_friend_dialog.large {
+	width: 700px;
+	left: -159px;
+	top: -150px;
+	margin: 0px auto;
+}
+
+#choose_friend_dialog .selectother:hover {
+	background-color: rgba(255, 255, 255, 0.5);
+}
+
+#choose_friend_dialog .rulercard.selectother:hover {
+	background-color: rgba(150, 255, 255, 0.5);
+}
+
+#choose_friend_dialog ul {
+	list-style: none;
+	padding: 0px;
+}
+
+#choose_friend_dialog button.select {
+	width: 160px;
+	height:32px;
+	margin: 4px;
+	line-height: 30px;
+	padding:0px;
+}
+
+/* 무늬 고르기 */
+#choose_suit_dialog {
+	padding:10px;
+}
+
+#choose_suit_dialog li {
+	margin: 10px
+}
+
+#choose_suit_dialog button {
+	vertical-align:bottom;
+}
+
+#choose_suit_dialog button.g
+{
+	padding: 0px;
+	height: 24px;
+	line-height: 24px;
+}
+
+#choose_suit_dialog button.suit
+{
+	font-size: 20px;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	line-height: 24px;
+}
+
+#choose_suit_dialog ul{
+	list-style: none;
+	padding: 0;
+}
+
+#choose_suit_dialog button.d,
+#choose_suit_dialog button.h
+{
+	color: red;
+}
+
+/* 공약 다이얼로그 */
+#choose_promise_dialog {
+	width: 300px;
+}
+
+#choose_promise_dialog ul {
+	list-style: none;
+	padding: 0;
+}
+#choose_promise_dialog ul.promise {
+	width: 100%;
+	height: 80px;
+}
+#choose_promise_dialog ul.promise ul,
+#choose_promise_dialog ul.promise li
+{
+	margin: 0;
+	display: inline-block;
+}
+#choose_promise_dialog ul.promise > li.buttons {
+	margin-top: 8px;
+}
+
+#choose_promise_dialog button.d,
+#choose_promise_dialog button.h
+{
+	color: red;
+}
+
+#choose_promise_dialog ul.promise button.selected {
+	background-color: #c88;
+	border-color: black;
+	margin-bottom: 16px;
+}
+
+#choose_promise_dialog ul.promise ul li.select_suit {
+	width: 200px;
+}
+#choose_promise_dialog ul.promise ul li.select_promise {
+	width: 100px;
+}
+#choose_promise_dialog ul.promise ul li {
+	float: left;
+	text-align: center;
+}
+
+#choose_promise_dialog ul.promise button {
+	font-size: 20px;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	line-height: 24px;
+}
+
+#choose_promise_dialog li.selected li {
+	font-size: 30px;
+	color: #a00;
+	text-shadow: 0px 0px 4px #fff;
+}
+/*
+#choose_promise_dialog li.body button {
+	font-size: 24px;
+	line-height: 24px;
+	margin-right: 4px;
+	padding: 0;
+	width: 26px;
+	height: 26px;
+}
+
+#choose_promise_dialog span.promise {
+	font-size: 24px;
+	color: #a00;
+	text-shadow: 0px 0px 4px #fff;
+	margin: 0 8px;
+}
+
+#choose_promise_dialog .select_suit button:hover {
+	border-color: #fff;
+}
+#choose_promise_dialog .select_suit button {
+	background: #aaa;
+}
+#choose_promise_dialog .suit.selected {
+	background-color: #fff;
+}
+	*/
+
+#choose_multiple {
+	width: 200px;
+	line-height: 200%;
+}
+
+#choose_multiple .change_promise {
+	display: none;
+}
+
+#choose_multiple button.open_change_promise {
+	font-size:12px;
+	padding:0px;
+	width:80px;
+	left:150px;
+	margin-bottom:16px;
+}
+
+#choose_multiple.enable_change_promise {
+	top: -100px;
+	width: 300px;
+}
+
+#choose_multiple ul {
+	list-style: none;
+	padding: 0;
+}
+#choose_multiple ul.promise {
+	width: 100%;
+	height: 80px;
+}
+#choose_multiple ul.promise ul,
+#choose_multiple ul.promise li
+{
+	margin: 0;
+	display: inline-block;
+}
+#choose_multiple ul.promise > li.buttons {
+	margin-top: 8px;
+}
+
+#choose_multiple button.d,
+#choose_multiple button.h
+{
+	color: red;
+}
+
+#choose_multiple ul.promise button.selected {
+	background-color: #c88;
+	border-color: black;
+	margin-bottom: 16px;
+}
+
+#choose_multiple ul.promise ul li.select_suit {
+	width: 200px;
+}
+#choose_multiple ul.promise ul li.select_promise {
+	width: 100px;
+}
+#choose_multiple ul.promise ul li {
+	float: left;
+	text-align: center;
+}
+
+#choose_multiple ul.promise button {
+	font-size: 20px;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	line-height: 24px;
+}
+
+#choose_multiple .reset_promise {
+	margin-bottom:16px;
+}
+
+#choose_multiple li.selected li {
+	font-size: 30px;
+	color: #a00;
+	text-shadow: 0px 0px 4px #fff;
+}
+
+#choose_multiple.enable_change_promise .change_promise {
+	display: block;
+}
+
+#choose_multiple.enable_change_promise .open_change_promise {
+	display: none;
+}
+
+#playing_field .profile {
+	position: absolute;
+}
+
+#playing_field .profile.top,
+#playing_field .profile.bottom
+{
+	width: 258px;
+	top: 100px;
+	left: 100px;
+}
+#playing_field .profile.left,
+#playing_field .profile.right 
+{
+	width: 200px;
+	top: 280px;
+	left: 100px;
+}
+
+#playing_field .profile a {
+	font-weight: bold;
+}
+
+#playing_field .profile .type {
+	color: rgb(255, 235, 235);
+	font-weight: bold;
+	text-shadow: 0px 0px 2px #fff;
+}
+
+#playing_field .profile.ruler a {
+	color: cyan;
+}
+
+#playing_field .profile.friend a {
+	color: #a6ffb3;
+}
+
+#playing_field dl {
+	margin: 0;
+}
+
+#playing_field .profile.top dl > *,
+#playing_field .profile.bottom dl > *{
+	float: left;
+}
+
+#playing_field .profile.right dl > * {
+	float: right;
+}
+
+#playing_field .profile.top dd,
+#playing_field .profile.bottom dd {
+	margin-left: 4px;
+}
+
+#playing_field .profile dt {
+	overflow: hidden;
+}
+
+#playing_field .profile.in_action dd {
+	border: 2px solid #FE9;
+
+	box-shadow: 0px 0px 8px #fee;
+	-moz-box-shadow: 0px 0px 8px #fee;
+	-webkit-box-shadow: 0px 0px 8px #fee;
+}
+
+#playing_field .profile dd {
+	margin: 0;
+	min-height: 42px;
+	width: 190px;
+	padding: 4px;
+	/* background-color: rgba(255, 255, 255, 0.1); */
+	background-color: rgba(0, 0, 0, 0.1);
+	line-height: 150%;
+	border: 1px solid #999;
+
+	box-shadow: 0px 0px 8px #eee;
+	-moz-box-shadow: 0px 0px 8px #eee;
+	-webkit-box-shadow: 0px 0px 8px #eee;
+
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+#playing_field .profile .message_type {
+	font-weight: bold;
+}
+
+#playing_field .profile .message {
+	color: #666;
+}
+
+#log {
+	position: absolute;
+}
+
+/* ==================
+   Initializr Theme
+   ================== */
+
+
+
+
+
+/* =============================================================================
+   Non-semantic helper classes
+   Please define your styles before this section.
+   ========================================================================== */
+
+/* For image replacement */
+.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
+.ir br { display: none; }
+
+/* Hide for both screenreaders and browsers:
+   css-discuss.incutio.com/wiki/Screenreader_Visibility */
+.hidden { display: none; visibility: hidden; }
+
+/* Hide only visually, but have it available for screenreaders: by Jon Neal.
+  www.webaim.org/techniques/css/invisiblecontent/  &  j.mp/visuallyhidden */
+.visuallyhidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+
+/* Extends the .visuallyhidden class to allow the element to be focusable when navigated to via the keyboard: drupal.org/node/897638 */
+.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus { clip: auto; height: auto; margin: 0; overflow: visible; position: static; width: auto; }
+
+/* Hide visually and from screenreaders, but maintain layout */
+.invisible { visibility: hidden; }
+
+/* Contain floats: nicolasgallagher.com/micro-clearfix-hack/ */ 
+.clearfix:before, .clearfix:after { content: ""; display: table; }
+.clearfix:after { clear: both; }
+.clearfix { zoom: 1; }
+
+
+
+/* =============================================================================
+   PLACEHOLDER Media Queries for Responsive Design.
+   These override the primary ('mobile first') styles
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 480px) {
+  /* Style adjustments for viewports 480px and over go here */
+
+}
+
+@media only screen and (min-width: 768px) {
+  /* Style adjustments for viewports 768px and over go here */
+
+}
+
+
+/* =============================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+ 
+@media print {
+  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important; -ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
+  a, a:visited { color: #444 !important; text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
+  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page { margin: 0.5cm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3{ page-break-after: avoid; }
+}
