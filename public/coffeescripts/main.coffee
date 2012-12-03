@@ -1,7 +1,6 @@
 PI = Math.PI
 BASE_RADIUS = 300
 MAX_SPEED = 50
-BULLET_RADIUS = 5
 getContext = ->
 	ctx = $('#maincanvas')[0].getContext('2d')
 	ctx.canvas.width = window.innerWidth
@@ -29,6 +28,9 @@ keyboardHandler =
 
 game = null
 myPlaneId = null
+
+now.youDead = ->
+	game.die()
 
 now.updateBullet = (bullet) ->
 	game.world.updateBullet bullet
@@ -65,6 +67,7 @@ class Bullet extends Entity
 		@vy = meta.vy
 		@ax = meta.ax
 		@ay = meta.ay
+		@r = meta.r
 
 	update: (delta=1/60) ->
 		@vx += @ax*delta
@@ -74,7 +77,7 @@ class Bullet extends Entity
 
 	render: (ctx) ->
 		ctx.beginPath()
-		ctx.arc(@x,@y,BULLET_RADIUS,0,2*Math.PI)
+		ctx.arc(@x,@y,@r,0,2*Math.PI)
 		ctx.closePath()
 		ctx.stroke()
 		ctx.fill()
@@ -91,6 +94,11 @@ class Plane extends Entity
 		@dir = meta.dir
 		@targetX = meta.targetX
 		@targetY = meta.targetY
+		@firing = meta.firing
+		@dead = meta.dead
+		@deadCount = meta.deadCount
+		@playTime = meta.playTime
+		@playTime ?= 0
 	isMe: ->
 		@id == myPlaneId
 	update: (delta = 1.0/60)->
@@ -107,6 +115,7 @@ class Plane extends Entity
 		@vy *= 0.8
 
 		# update direction
+		#if not @firing
 		if @targetX == @x and @targetY == @y
 			@targetDir = @dir
 		else
@@ -128,9 +137,15 @@ class Plane extends Entity
 					@dir -= ANGULAR_SPEED
 
 	render: (ctx) ->
+		if @dead
+			ctx.globalAlpha = 0.3
 		ctx.beginPath()
-		LONG_RADIUS = 15
+		LONG_RADIUS = 13
 		SHORT_RADIUS = 5
+		ctx.fillStyle = '#ffffff'
+		ctx.arc(@x, @y, 2, 0, 2*PI)
+		ctx.fill()
+		ctx.fillStyle = '#000000'
 		ctx.moveTo(@x + Math.cos(@dir)*LONG_RADIUS, @y + Math.sin(@dir)*LONG_RADIUS)
 		ctx.lineTo(@x + Math.cos(@dir+PI*2/3)*SHORT_RADIUS, @y + Math.sin(@dir+PI*2/3)*SHORT_RADIUS)
 		ctx.lineTo(@x + Math.cos(@dir-PI*2/3)*SHORT_RADIUS, @y + Math.sin(@dir-PI*2/3)*SHORT_RADIUS)
@@ -138,20 +153,49 @@ class Plane extends Entity
 		ctx.closePath()
 		ctx.stroke()
 		ctx.fill()
+		t = time()/10 % 30
+		if @firing
+			for x in [0, 30, 60, 90]
+				if x == 90
+					cv = Math.floor(t*255/30)
+					ctx.strokeStyle = "rgb("+cv+","+cv+","+cv+")"
+					#ctx.strokeStyle = 'rgb(0,255,0)'
+				ctx.beginPath()
+				ctx.arc(@x, @y, x+t, @dir-PI/6, @dir+PI/6)
+				ctx.stroke()
+		ctx.strokeStyle = '#000000'
+		ctx.fillStyle = '#000000'
+		ctx.globalAlpha = 1.0
+		if @dead
+			ctx.textAlign = 'center'
+			ctx.font = '20px helvetica'
+			ctx.fillText("You died " + @deadCount + " time(s).",0,0)
 
 
 class Player extends Plane
 	constructor: (meta) ->
 		super meta
 		@directions = {}
+	startFiring: ->
+		now.startFiring @dir
+		@firing = true
+	endFiring: ->
+		now.endFiring @dir
+		@firing = false
+
+	die: ->
+		# do nothing?
+		console.log 'ARGH!!!! I died!!!', @deadCount
+		
 	look: (x,y) ->
 		@targetX = x
 		@targetY = y
 		if now.syncTarget?
 			if @lastLook?
-				if time() - @lastLook < 300
+				if time() - @lastLook < 150 or @firing and time() - @lastLook < 100
 					return
 			@lastLook = time()
+			now.syncPosition @x, @y, @vx, @vy, @ax, @ay
 			now.syncTarget x, y, @dir
 	accelerate: (direction, onoff) ->
 		if onoff
@@ -177,7 +221,8 @@ class Player extends Plane
 		else
 			@ax = 0
 			@ay = 0
-		now.syncPosition @x, @y, @vx, @vy, @ax, @ay
+		if now.syncPosition?
+			now.syncPosition @x, @y, @vx, @vy, @ax, @ay
 
 	update: (delta = 1.0/60) ->
 		super delta
@@ -232,6 +277,7 @@ class World
 
 	updateBullet: (bullet) ->
 		newBullet = new Bullet(bullet)
+		old = @bullets[newBullet.id]
 		@bullets[newBullet.id] = newBullet
 
 	deletePlane: (id) ->
@@ -240,12 +286,15 @@ class World
 	updatePlaneCount: (@planeCount) ->
 		
 	updatePlane: (plane) ->
-		console.log plane, time()
 		if plane.id of @planes
 			# update plane data
 			if plane.id != myPlaneId and plane.id of @planes
 				@planes[plane.id] = new Plane(plane)
 				#@planes[newPlane.id].sync plane
+			else
+				@planes[plane.id].dead = plane.dead
+				@planes[plane.id].deadCount = plane.deadCount
+				@planes[plane.id].playTime = plane.playTime
 		else
 			# new plane appear
 			if plane.id == myPlaneId
@@ -269,12 +318,41 @@ class Game
 
 	update: ->
 		@world.update()
+		v = []
+		for idx, plane of @world.planes
+			if not plane.playTime?
+				continue
+			v.push [(plane.playTime - plane.deadCount*5000) / (plane.deadCount+1), plane.id]
+		v.sort (l,r)->
+			return - l[0] + r[0]
+		v.reverse()
+		p = @world.getMyPlane()
+		if not p?
+			return
+		s = 'I am Plane '+p.id+'<br>Rank by avg play time per life<br>'
+		i = 0
+		while i < 10 and i < v.length
+			s += 'Plane ' + v[i][1] + ' : ' + (v[i][0]/1000).toFixed(1) + '<br>'
+			i+=1
+		$('#rankStat').html(s)
 
+	die: ->
+		@world.getMyPlane().die()
+		
 	look: (x,y)->
+		if not @ctx?
+			return
 		x -= @ctx.canvas.width / 2
 		y -= @ctx.canvas.height / 2
 		if @world.getMyPlane()?
 			@world.getMyPlane().look x,y
+	startFiring: ->
+		if @world.getMyPlane()?
+			@world.getMyPlane().startFiring()
+		
+	endFiring: ->
+		if @world.getMyPlane()?
+			@world.getMyPlane().endFiring()
 
 	processCommand: (dir, onoff) ->
 		if @world.getMyPlane()?
@@ -359,9 +437,15 @@ now.ready ->
 			x = e.pageX
 			y = e.pageY
 			game.look(x,y)
+		$(document).mousedown (e) ->
+			game.startFiring()
+		$(document).mouseup (e) ->
+			game.endFiring()
 		game = new Game()
 		game.start()
 		# fast ping adaption
 		for x in [0..5]
 			now.ping time()
-		setInterval (-> now.ping time()), 5000
+		setInterval (->
+			if now.ping?
+				now.ping time()), 5000

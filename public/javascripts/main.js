@@ -1,5 +1,5 @@
 (function() {
-  var BASE_RADIUS, BULLET_RADIUS, Bullet, Entity, Game, MAX_SPEED, PI, Plane, Player, World, flipCanvas, game, getContext, keyboardHandler, myPlaneId, onEachFrame, time;
+  var BASE_RADIUS, Bullet, Entity, Game, MAX_SPEED, PI, Plane, Player, World, flipCanvas, game, getContext, keyboardHandler, myPlaneId, onEachFrame, time;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   PI = Math.PI;
@@ -7,8 +7,6 @@
   BASE_RADIUS = 300;
 
   MAX_SPEED = 50;
-
-  BULLET_RADIUS = 5;
 
   getContext = function() {
     var ctx;
@@ -35,6 +33,10 @@
   game = null;
 
   myPlaneId = null;
+
+  now.youDead = function() {
+    return game.die();
+  };
 
   now.updateBullet = function(bullet) {
     return game.world.updateBullet(bullet);
@@ -87,6 +89,7 @@
       this.vy = meta.vy;
       this.ax = meta.ax;
       this.ay = meta.ay;
+      this.r = meta.r;
     }
 
     Bullet.prototype.update = function(delta) {
@@ -99,7 +102,7 @@
 
     Bullet.prototype.render = function(ctx) {
       ctx.beginPath();
-      ctx.arc(this.x, this.y, BULLET_RADIUS, 0, 2 * Math.PI);
+      ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
       ctx.closePath();
       ctx.stroke();
       return ctx.fill();
@@ -114,6 +117,7 @@
     __extends(Plane, Entity);
 
     function Plane(meta) {
+      var _ref;
       this.id = meta.id;
       this.x = meta.x;
       this.y = meta.y;
@@ -124,6 +128,11 @@
       this.dir = meta.dir;
       this.targetX = meta.targetX;
       this.targetY = meta.targetY;
+      this.firing = meta.firing;
+      this.dead = meta.dead;
+      this.deadCount = meta.deadCount;
+      this.playTime = meta.playTime;
+      if ((_ref = this.playTime) == null) this.playTime = 0;
     }
 
     Plane.prototype.isMe = function() {
@@ -175,17 +184,44 @@
     };
 
     Plane.prototype.render = function(ctx) {
-      var LONG_RADIUS, SHORT_RADIUS;
+      var LONG_RADIUS, SHORT_RADIUS, cv, t, x, _i, _len, _ref;
+      if (this.dead) ctx.globalAlpha = 0.3;
       ctx.beginPath();
-      LONG_RADIUS = 15;
+      LONG_RADIUS = 13;
       SHORT_RADIUS = 5;
+      ctx.fillStyle = '#ffffff';
+      ctx.arc(this.x, this.y, 2, 0, 2 * PI);
+      ctx.fill();
+      ctx.fillStyle = '#000000';
       ctx.moveTo(this.x + Math.cos(this.dir) * LONG_RADIUS, this.y + Math.sin(this.dir) * LONG_RADIUS);
       ctx.lineTo(this.x + Math.cos(this.dir + PI * 2 / 3) * SHORT_RADIUS, this.y + Math.sin(this.dir + PI * 2 / 3) * SHORT_RADIUS);
       ctx.lineTo(this.x + Math.cos(this.dir - PI * 2 / 3) * SHORT_RADIUS, this.y + Math.sin(this.dir - PI * 2 / 3) * SHORT_RADIUS);
       ctx.lineTo(this.x + Math.cos(this.dir) * LONG_RADIUS, this.y + Math.sin(this.dir) * LONG_RADIUS);
       ctx.closePath();
       ctx.stroke();
-      return ctx.fill();
+      ctx.fill();
+      t = time() / 10 % 30;
+      if (this.firing) {
+        _ref = [0, 30, 60, 90];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          x = _ref[_i];
+          if (x === 90) {
+            cv = Math.floor(t * 255 / 30);
+            ctx.strokeStyle = "rgb(" + cv + "," + cv + "," + cv + ")";
+          }
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, x + t, this.dir - PI / 6, this.dir + PI / 6);
+          ctx.stroke();
+        }
+      }
+      ctx.strokeStyle = '#000000';
+      ctx.fillStyle = '#000000';
+      ctx.globalAlpha = 1.0;
+      if (this.dead) {
+        ctx.textAlign = 'center';
+        ctx.font = '20px helvetica';
+        return ctx.fillText("You died " + this.deadCount + " time(s).", 0, 0);
+      }
     };
 
     return Plane;
@@ -201,12 +237,31 @@
       this.directions = {};
     }
 
+    Player.prototype.startFiring = function() {
+      now.startFiring(this.dir);
+      return this.firing = true;
+    };
+
+    Player.prototype.endFiring = function() {
+      now.endFiring(this.dir);
+      return this.firing = false;
+    };
+
+    Player.prototype.die = function() {
+      return console.log('ARGH!!!! I died!!!', this.deadCount);
+    };
+
     Player.prototype.look = function(x, y) {
       this.targetX = x;
       this.targetY = y;
       if (now.syncTarget != null) {
-        if (this.lastLook != null) if (time() - this.lastLook < 300) return;
+        if (this.lastLook != null) {
+          if (time() - this.lastLook < 150 || this.firing && time() - this.lastLook < 100) {
+            return;
+          }
+        }
         this.lastLook = time();
+        now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
         return now.syncTarget(x, y, this.dir);
       }
     };
@@ -243,7 +298,9 @@
         this.ax = 0;
         this.ay = 0;
       }
-      return now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
+      if (now.syncPosition != null) {
+        return now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
+      }
     };
 
     Player.prototype.update = function(delta) {
@@ -330,8 +387,9 @@
     };
 
     World.prototype.updateBullet = function(bullet) {
-      var newBullet;
+      var newBullet, old;
       newBullet = new Bullet(bullet);
+      old = this.bullets[newBullet.id];
       return this.bullets[newBullet.id] = newBullet;
     };
 
@@ -345,10 +403,13 @@
 
     World.prototype.updatePlane = function(plane) {
       var newPlane;
-      console.log(plane, time());
       if (plane.id in this.planes) {
         if (plane.id !== myPlaneId && plane.id in this.planes) {
           return this.planes[plane.id] = new Plane(plane);
+        } else {
+          this.planes[plane.id].dead = plane.dead;
+          this.planes[plane.id].deadCount = plane.deadCount;
+          return this.planes[plane.id].playTime = plane.playTime;
         }
       } else {
         if (plane.id === myPlaneId) {
@@ -382,14 +443,52 @@
     }
 
     Game.prototype.update = function() {
-      return this.world.update();
+      var i, idx, p, plane, s, v, _ref;
+      this.world.update();
+      v = [];
+      _ref = this.world.planes;
+      for (idx in _ref) {
+        plane = _ref[idx];
+        if (!(plane.playTime != null)) continue;
+        v.push([(plane.playTime - plane.deadCount * 5000) / (plane.deadCount + 1), plane.id]);
+      }
+      v.sort(function(l, r) {
+        return -l[0] + r[0];
+      });
+      v.reverse();
+      p = this.world.getMyPlane();
+      if (!(p != null)) return;
+      s = 'I am Plane ' + p.id + '<br>Rank by avg play time per life<br>';
+      i = 0;
+      while (i < 10 && i < v.length) {
+        s += 'Plane ' + v[i][1] + ' : ' + (v[i][0] / 1000).toFixed(1) + '<br>';
+        i += 1;
+      }
+      return $('#rankStat').html(s);
+    };
+
+    Game.prototype.die = function() {
+      return this.world.getMyPlane().die();
     };
 
     Game.prototype.look = function(x, y) {
+      if (!(this.ctx != null)) return;
       x -= this.ctx.canvas.width / 2;
       y -= this.ctx.canvas.height / 2;
       if (this.world.getMyPlane() != null) {
         return this.world.getMyPlane().look(x, y);
+      }
+    };
+
+    Game.prototype.startFiring = function() {
+      if (this.world.getMyPlane() != null) {
+        return this.world.getMyPlane().startFiring();
+      }
+    };
+
+    Game.prototype.endFiring = function() {
+      if (this.world.getMyPlane() != null) {
+        return this.world.getMyPlane().endFiring();
       }
     };
 
@@ -512,13 +611,19 @@
         y = e.pageY;
         return game.look(x, y);
       });
+      $(document).mousedown(function(e) {
+        return game.startFiring();
+      });
+      $(document).mouseup(function(e) {
+        return game.endFiring();
+      });
       game = new Game();
       game.start();
       for (x = 0; x <= 5; x++) {
         now.ping(time());
       }
       return setInterval((function() {
-        return now.ping(time());
+        if (now.ping != null) return now.ping(time());
       }), 5000);
     });
   });

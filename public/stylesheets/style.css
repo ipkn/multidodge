@@ -227,6 +227,12 @@ a:hover {
 	font-weight:bold;
 }
 
+#rankStat {
+	position: absolute;
+	top: 50px;
+	left: 10px;
+	font-size: 15px;
+}
 
 #statusbar {
 	font-size:15px;

@@ -3,7 +3,7 @@ bullet = require('./bullet')
 NEW_BULLET_SPEED_RANGE = [30, 150]
 VIRTUAL_USER_COUNT = 0
 BASE_WORLD_SIZE = 300
-BULLET_PER_PLANE = 100
+BULLET_PER_PLANE = 130
 
 flipCoin = (p) ->
 	Math.random() < p
@@ -27,6 +27,12 @@ class World
 		@now.syncTarget = (x, y, dir) ->
 			world.syncTarget this, x, y, dir
 
+		@now.startFiring = (dir) ->
+			world.syncFire this, dir, true
+
+		@now.endFiring = (dir) ->
+			world.syncFire this, dir, false
+
 	#player sync
 	syncPosition: (client, x, y, vx, vy, ax, ay) ->
 		id = client.user.id
@@ -48,6 +54,16 @@ class World
 		if syncPlane?
 			syncPlane.targetX = x
 			syncPlane.targetY = y
+			syncPlane.dir = dir
+			@now.updatePlane syncPlane
+
+	syncFire: (client, dir, onoff) ->
+		id = client.user.id
+		pingTime = client.now.pingTime
+		syncPlane = @planes[id]
+		if syncPlane?
+			syncPlane.dir = dir
+			syncPlane.firing = onoff
 			@now.updatePlane syncPlane
 
 	computeWorldSize: ->
@@ -78,6 +94,26 @@ class World
 			@createBullet()
 			currentBulletCount++
 
+		# push bullets by plane
+		for _, plane of @planes
+			plane.computePlayTime()
+			if plane.dead
+				continue
+			for __, bullet of @bullets
+				if plane.near(bullet, 5)
+					plane.client.now.youDead()
+					plane.die(@now.updatePlane)
+					@now.updatePlane plane
+
+				if plane.firing and not plane.dead
+					if plane.near(bullet, 120)
+						angularDiff = plane.angularDiff bullet
+						angularDiff += 2*Math.PI while angularDiff < -Math.PI
+						angularDiff -= 2*Math.PI while angularDiff > +Math.PI
+						if Math.abs(angularDiff) < Math.PI/6
+							bullet.pushAway plane, (120-plane.distance(bullet))*3/120
+							@now.updateBullet bullet
+
 	onDisconnect: (client) ->
 		@deletePlane client.user.id
 
@@ -99,6 +135,12 @@ class World
 		client.user.id = id
 		client.now.notifyMyPlane id
 		@now.updatePlane newPlane
+		bc=0
+		for idx, eachBullet of @bullets
+			client.now.updateBullet eachBullet
+			bc++
+		for idx, eachPlane of @planes
+			client.now.updatePlane eachPlane
 
 		newPlane
 
@@ -107,7 +149,7 @@ class World
 		@bulletId--
 
 		newBullet = null
-		isAimedShot = flipCoin 0.3
+		isAimedShot = flipCoin 0.2
 		if isAimedShot
 			n = 0
 			pickedPlane = null
@@ -123,8 +165,6 @@ class World
 				sy = dist * Math.sin(dir1)
 				ex = pickedPlane.x + Math.random() * 50
 				ey = pickedPlane.y + Math.random() * 50
-				ex = pickedPlane.x
-				ey = pickedPlane.y
 				vx = ex-sx
 				vy = ey-sy
 				vsize = Math.sqrt(vx*vx + vy*vy)
