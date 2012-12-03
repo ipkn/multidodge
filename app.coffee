@@ -20,7 +20,7 @@ app.configure ->
   app.use(express.methodOverride())
   app.use(express.cookieParser('jfj32*#&hfi83*#*'))
   app.use(express.session({secret:'jfkj(32Hfi9('}))
-  app.use(require('express-coffee')({ debug:true,path: __dirname + '/public',}))
+  app.use(require('express-coffee')({ debug: true, path: __dirname + '/public',}))
   app.use(app.router)
   app.use(express.static(path.join(__dirname, 'public')))
 
@@ -38,17 +38,9 @@ enow.users = []
 
 game = require('./gamelib/game')(enow)
 
-enow.helloServer = ->
-	console.log 'new user',@user.clientId
-	game.newConnection(this)
-
-tools = require './public/coffeescripts/tools.coffee'
-
-
-#everyone.now.observe = (roomid, userid) ->
-	#@now.doObserve()
-#everyone.now.readyToPlay = (roomid, userid) ->
-	#nowjs.getGroup("room#{roomid}").addUser @user.clientId
+nowjs.on 'disconnect', ->
+	game.onDisconnect this
+#tools = require './public/coffeescripts/tools.coffee'
 
 app.listen 40038, ->
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env)

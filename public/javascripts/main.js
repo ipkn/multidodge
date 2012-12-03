@@ -1,10 +1,14 @@
 (function() {
-  var Bullet, Entity, Game, MAX_SPEED, PI, Plane, Player, World, game, getContext, getMyPlane, keyboardHandler, myPlaneId, onEachFrame, pingTime, time;
+  var BASE_RADIUS, BULLET_RADIUS, Bullet, Entity, Game, MAX_SPEED, PI, Plane, Player, World, flipCanvas, game, getContext, keyboardHandler, myPlaneId, onEachFrame, time;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-  PI = 3.1415926535;
+  PI = Math.PI;
+
+  BASE_RADIUS = 300;
 
   MAX_SPEED = 50;
+
+  BULLET_RADIUS = 5;
 
   getContext = function() {
     var ctx;
@@ -14,6 +18,8 @@
     ctx.setTransform(1, 0, 0, 1, window.innerWidth / 2, window.innerHeight / 2);
     return ctx;
   };
+
+  flipCanvas = function() {};
 
   time = function() {
     return (new Date).getTime();
@@ -31,11 +37,23 @@
   myPlaneId = null;
 
   now.updateBullet = function(bullet) {
-    return console.log(bullet);
+    return game.world.updateBullet(bullet);
+  };
+
+  now.deleteBullet = function(id) {
+    return game.world.deleteBullet(id);
+  };
+
+  now.updatePlaneCount = function(planeCount) {
+    return game.world.updatePlaneCount(planeCount);
   };
 
   now.updatePlane = function(plane) {
     return game.world.updatePlane(plane);
+  };
+
+  now.deletePlane = function(id) {
+    return game.world.deletePlane(id);
   };
 
   now.notifyMyPlane = function(planeId) {
@@ -43,17 +61,15 @@
     return console.log("i am plane", myPlaneId);
   };
 
-  pingTime = 100;
+  now.pingTime = 100;
 
   now.pong = function(t) {
-    return pingTime = pingTime * 0.5 + (time() - t) / 2 * 0.5;
+    return now.pingTime = now.pingTime * 0.5 + (time() - t) / 2 * 0.5;
   };
 
   Entity = (function() {
 
-    function Entity(id) {
-      this.id = id;
-    }
+    function Entity(meta) {}
 
     return Entity;
 
@@ -63,9 +79,31 @@
 
     __extends(Bullet, Entity);
 
-    function Bullet(id) {
-      this.id = id;
+    function Bullet(meta) {
+      this.id = meta.id;
+      this.x = meta.x;
+      this.y = meta.y;
+      this.vx = meta.vx;
+      this.vy = meta.vy;
+      this.ax = meta.ax;
+      this.ay = meta.ay;
     }
+
+    Bullet.prototype.update = function(delta) {
+      if (delta == null) delta = 1 / 60;
+      this.vx += this.ax * delta;
+      this.vy += this.ay * delta;
+      this.x += this.vx * delta;
+      return this.y += this.vy * delta;
+    };
+
+    Bullet.prototype.render = function(ctx) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, BULLET_RADIUS, 0, 2 * Math.PI);
+      ctx.closePath();
+      ctx.stroke();
+      return ctx.fill();
+    };
 
     return Bullet;
 
@@ -84,8 +122,8 @@
       this.ax = meta.ax;
       this.ay = meta.ay;
       this.dir = meta.dir;
-      this.targetX = meta.targetx;
-      this.targetY = meta.targety;
+      this.targetX = meta.targetX;
+      this.targetY = meta.targetY;
     }
 
     Plane.prototype.isMe = function() {
@@ -112,22 +150,22 @@
         this.targetDir = Math.atan2(this.targetY - this.y, this.targetX - this.x);
       }
       if (this.targetDir !== this.dir) {
-        ANGULAR_SPEED = 5 * PI / 180;
+        ANGULAR_SPEED = 10 * PI / 180;
         angleDiff = this.targetDir - this.dir;
-        while (angleDiff < 0) {
+        while (angleDiff < -PI) {
           angleDiff += 2 * PI;
         }
-        while (angleDiff >= 2 * PI) {
+        while (angleDiff >= +PI) {
           angleDiff -= 2 * PI;
         }
-        if (angleDiff < PI) {
+        if (angleDiff >= 0) {
           if (angleDiff < ANGULAR_SPEED) {
             return this.dir = this.targetDir;
           } else {
             return this.dir += ANGULAR_SPEED;
           }
         } else {
-          if (angleDiff > 2 * PI - ANGULAR_SPEED) {
+          if (angleDiff > -ANGULAR_SPEED) {
             return this.dir = this.targetDir;
           } else {
             return this.dir -= ANGULAR_SPEED;
@@ -165,7 +203,12 @@
 
     Player.prototype.look = function(x, y) {
       this.targetX = x;
-      return this.targetY = y;
+      this.targetY = y;
+      if (now.syncTarget != null) {
+        if (this.lastLook != null) if (time() - this.lastLook < 300) return;
+        this.lastLook = time();
+        return now.syncTarget(x, y, this.dir);
+      }
     };
 
     Player.prototype.accelerate = function(direction, onoff) {
@@ -195,11 +238,12 @@
       dsize = Math.sqrt(dx * dx + dy * dy);
       if (dsize > 0) {
         this.ax = dx / dsize * 600;
-        return this.ay = dy / dsize * 600;
+        this.ay = dy / dsize * 600;
       } else {
         this.ax = 0;
-        return this.ay = 0;
+        this.ay = 0;
       }
+      return now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
     };
 
     Player.prototype.update = function(delta) {
@@ -219,42 +263,106 @@
     }
 
     World.prototype.update = function() {
-      var id, plane, _ref, _results;
+      var bullet, id, plane, _ref, _ref2, _results;
       _ref = this.planes;
-      _results = [];
       for (id in _ref) {
         plane = _ref[id];
-        _results.push(plane.update());
+        plane.update();
+      }
+      _ref2 = this.bullets;
+      _results = [];
+      for (id in _ref2) {
+        bullet = _ref2[id];
+        _results.push(bullet.update());
       }
       return _results;
     };
 
+    World.prototype.renderBackground = function(ctx) {
+      var h, targetRadius, w;
+      if (!(this.planeCount != null)) return;
+      if (!(this.lastRenderedBackgroundSize != null)) {
+        this.lastRenderedBackgroundSize = Math.sqrt(this.planeCount) * BASE_RADIUS;
+      }
+      w = ctx.canvas.width;
+      h = ctx.canvas.height;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      targetRadius = Math.sqrt(this.planeCount) * BASE_RADIUS;
+      if (Math.abs(targetRadius - this.lastRenderedBackgroundSize) < 10) {
+        this.lastRenderedBackgroundSize = targetRadius;
+      }
+      if (this.lastRenderedBackgroundSize < targetRadius) {
+        this.lastRenderedBackgroundSize += 10;
+      } else if (this.lastRenderedBackgroundSize > targetRadius) {
+        this.lastRenderedBackgroundSize -= 10;
+      }
+      ctx.arc(0, 0, this.lastRenderedBackgroundSize, 0, 2 * Math.PI);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fill();
+      ctx.globalCompositeOperation = 'destination-over';
+      return ctx.fillStyle = "#000000";
+    };
+
     World.prototype.render = function(ctx) {
-      var id, plane, _ref, _results;
+      var bullet, id, plane, _ref, _ref2, _results;
+      this.renderBackground(ctx);
       _ref = this.planes;
-      _results = [];
       for (id in _ref) {
         plane = _ref[id];
-        _results.push(plane.render(ctx));
+        plane.render(ctx);
+      }
+      _ref2 = this.bullets;
+      _results = [];
+      for (id in _ref2) {
+        bullet = _ref2[id];
+        _results.push(bullet.render(ctx));
       }
       return _results;
+    };
+
+    World.prototype.deleteBullet = function(id) {
+      return delete this.bullets[id];
+    };
+
+    World.prototype.updateBullet = function(bullet) {
+      var newBullet;
+      newBullet = new Bullet(bullet);
+      return this.bullets[newBullet.id] = newBullet;
+    };
+
+    World.prototype.deletePlane = function(id) {
+      return delete this.planes[id];
+    };
+
+    World.prototype.updatePlaneCount = function(planeCount) {
+      this.planeCount = planeCount;
     };
 
     World.prototype.updatePlane = function(plane) {
       var newPlane;
-      if (plane.id in this.planes) {} else {
+      console.log(plane, time());
+      if (plane.id in this.planes) {
+        if (plane.id !== myPlaneId && plane.id in this.planes) {
+          return this.planes[plane.id] = new Plane(plane);
+        }
+      } else {
         if (plane.id === myPlaneId) {
           newPlane = new Player(plane);
         } else {
           newPlane = new Plane(plane);
         }
-        this.planes[newPlane.id] = newPlane;
+        return this.planes[newPlane.id] = newPlane;
       }
-      return console.log("updatePlane", newPlane);
     };
 
     World.prototype.getMyPlane = function() {
-      return this.planes[myPlaneId];
+      if (myPlaneId != null) return this.planes[myPlaneId];
+      return null;
     };
 
     return World;
@@ -280,11 +388,15 @@
     Game.prototype.look = function(x, y) {
       x -= this.ctx.canvas.width / 2;
       y -= this.ctx.canvas.height / 2;
-      return this.world.getMyPlane().look(x, y);
+      if (this.world.getMyPlane() != null) {
+        return this.world.getMyPlane().look(x, y);
+      }
     };
 
     Game.prototype.processCommand = function(dir, onoff) {
-      return this.world.getMyPlane().accelerate(dir, onoff);
+      if (this.world.getMyPlane() != null) {
+        return this.world.getMyPlane().accelerate(dir, onoff);
+      }
     };
 
     Game.prototype.render = function() {
@@ -335,16 +447,15 @@
         updateProcessed += 1;
         this.nextGameTick += this.skipTicks;
       }
-      if (updateProcessed) return this.render();
+      if (updateProcessed) {
+        this.render();
+        return flipCanvas();
+      }
     };
 
     return Game;
 
   })();
-
-  getMyPlane = function() {
-    return game.world.getMyPlane();
-  };
 
   if (window.webkitRequestAnimationFrame) {
     onEachFrame = function(cb) {

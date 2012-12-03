@@ -1,20 +1,25 @@
 world = require('./world')
 
-planeId = 1
+game = null
 
 class Game
 	constructor: (@now)->
-		@world = new world.World
+		@world = new world.World(@now)
+		setInterval (=> @world.update()), 1000/60
 
+		@now.pingTime = 100
 		@now.ping = (t) ->
 			@now.pong(t)
+		@now.helloServer = ->
+			console.log 'new user',@user.clientId
+			game.newConnection(this)
 
-	newConnection: (user)->
-		newPlane = @world.createPlane planeId
-		planeId = newPlane.id
-		user.user.id = planeId
-		user.now.notifyMyPlane planeId
-		@now.updatePlane newPlane
+	newConnection: (client) ->
+		newPlane = @world.createPlane(client)
+
+	onDisconnect: (client) ->
+		@world.onDisconnect client
 
 module.exports = (now) ->
-	new Game(now)
+	game = new Game(now)
+	game
