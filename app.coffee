@@ -1,6 +1,3 @@
-
-host = 'http://shovel.redfeel.net:40037'
-
 express = require('express')
 #routes = require('./routes')
 #user = require('./routes/user')
@@ -39,12 +36,11 @@ everyone = nowjs.initialize app
 enow = everyone.now
 enow.users = []
 
-planeId = 1
+game = require('./gamelib/game')(enow)
 
 enow.helloServer = ->
 	console.log 'new user',@user.clientId
-	@user.id = planeId
-	planeId += 1
+	game.newConnection(this)
 
 tools = require './public/coffeescripts/tools.coffee'
 
