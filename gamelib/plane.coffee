@@ -16,7 +16,7 @@ class Plane
 	revive: ->
 		@dead = false
 
-	update: (@delta = 1.0/60)->
+	update: (delta = 1.0/60)->
 		@vx += @ax*delta
 		@vy += @ay*delta
 		@x += @vx*delta
