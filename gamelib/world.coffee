@@ -4,7 +4,8 @@ space = require('./space')
 NEW_BULLET_SPEED_RANGE_LIST = [[50, 50], [30,60],[100,120]]
 VIRTUAL_USER_COUNT = 0
 BASE_WORLD_SIZE = 300
-BULLET_PER_PLANE = 130
+BULLET_PER_PLANE = 50#130
+MAX_BULLET_PUSH_POWER = 24#12
 
 flipCoin = (p) ->
 	Math.random() < p
@@ -103,6 +104,7 @@ class World
 			currentBulletCount++
 
 		updatedPlanes = {}
+		updatedBullets = {}
 		# push bullets by plane
 		for _, plane of @planes
 
@@ -130,9 +132,9 @@ class World
 						angularDiff += 2*Math.PI while angularDiff < -Math.PI
 						angularDiff -= 2*Math.PI while angularDiff > +Math.PI
 						if Math.abs(angularDiff) < Math.PI/6
-							bullet.pushAway plane, (120-plane.distance(bullet))*12/120
+							bullet.pushAway plane, (120-plane.distance(bullet))*MAX_BULLET_PUSH_POWER/120
 							@bulletSpace.update bullet
-							@now.updateBullet bullet
+							updatedBullets[bullet.id] = bullet
 
 			plane.update()
 			x=plane.x
@@ -142,8 +144,10 @@ class World
 				d=Math.sqrt(x*x+y*y)
 				plane.x *= w/d
 				plane.y *= w/d
-		for idx, plane of updatedPlanes[plane.id]
+		for idx, plane of updatedPlanes
 			@now.updatePlane plane
+		for idx, bullet of updatedBullets
+			@now.updateBullet bullet
 
 	onDisconnect: (client) ->
 		@deletePlane client.user.id
