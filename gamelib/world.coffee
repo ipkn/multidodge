@@ -40,6 +40,10 @@ class World
 		pingTime = client.now.pingTime
 		syncPlane = @planes[id]
 		if syncPlane?
+			#dx = syncPlane.x-x
+			#dy = syncPlane.y-y
+			#if dx*dx+dy*dy > 25
+				#console.log Math.sqrt(dx*dx+dy*dy)
 			syncPlane.x = x
 			syncPlane.y = y
 			syncPlane.vx = vx
@@ -100,6 +104,7 @@ class World
 
 		# push bullets by plane
 		for _, plane of @planes
+
 			plane.computePlayTime()
 			if plane.dead
 				continue
@@ -121,6 +126,15 @@ class World
 							bullet.pushAway plane, (120-plane.distance(bullet))*12/120
 							@bulletSpace.update bullet
 							@now.updateBullet bullet
+
+			plane.update()
+			x=plane.x
+			y=plane.y
+			w = @computeWorldSize()
+			if x*x+y*y > w*w
+				d=Math.sqrt(x*x+y*y)
+				plane.x *= w/d
+				plane.y *= w/d
 
 	onDisconnect: (client) ->
 		@deletePlane client.user.id
