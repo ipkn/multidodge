@@ -201,7 +201,7 @@
       ctx.stroke();
       ctx.fill();
       t = time() / 10 % 30;
-      if (this.firing) {
+      if (this.firing && !this.dead) {
         _ref = [0, 30, 60, 90];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           x = _ref[_i];
@@ -217,7 +217,7 @@
       ctx.strokeStyle = '#000000';
       ctx.fillStyle = '#000000';
       ctx.globalAlpha = 1.0;
-      if (this.dead) {
+      if (this.dead && this.isMe()) {
         ctx.textAlign = 'center';
         ctx.font = '20px helvetica';
         return ctx.fillText("You died " + this.deadCount + " time(s).", 0, 0);
@@ -339,7 +339,7 @@
       var h, targetRadius, w;
       if (!(this.planeCount != null)) return;
       if (!(this.lastRenderedBackgroundSize != null)) {
-        this.lastRenderedBackgroundSize = Math.sqrt(this.planeCount) * BASE_RADIUS;
+        this.lastRenderedBackgroundSize = Math.sqrt(1 + 0.1 * this.planeCount) * BASE_RADIUS;
       }
       w = ctx.canvas.width;
       h = ctx.canvas.height;
@@ -348,7 +348,7 @@
       ctx.fillRect(-w / 2, -h / 2, w, h);
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
-      targetRadius = Math.sqrt(this.planeCount) * BASE_RADIUS;
+      targetRadius = Math.sqrt(1 + 0.1 * this.planeCount) * BASE_RADIUS;
       if (Math.abs(targetRadius - this.lastRenderedBackgroundSize) < 10) {
         this.lastRenderedBackgroundSize = targetRadius;
       }
@@ -455,13 +455,14 @@
       v.sort(function(l, r) {
         return -l[0] + r[0];
       });
-      v.reverse();
       p = this.world.getMyPlane();
       if (!(p != null)) return;
-      s = 'I am Plane ' + p.id + '<br>Rank by avg play time per life<br>';
+      s = '';
+      s += 'WSAD to move, Click to push bullets<br>';
+      s += 'I am Plane ' + p.id + '<br>Rank by avg play time per life<br>';
       i = 0;
       while (i < 10 && i < v.length) {
-        s += 'Plane ' + v[i][1] + ' : ' + (v[i][0] / 1000).toFixed(1) + '<br>';
+        s += 'Plane ' + v[i][1] + ' : ' + (v[i][0] / 1000).toFixed(1) + ' / ' + this.world.planes[v[i][1]].deadCount + '<br>';
         i += 1;
       }
       return $('#rankStat').html(s);

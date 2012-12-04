@@ -1,6 +1,7 @@
 plane = require('./plane')
 bullet = require('./bullet')
-NEW_BULLET_SPEED_RANGE = [30, 150]
+space = require('./space')
+NEW_BULLET_SPEED_RANGE_LIST = [[50, 50], [30,60],[100,120]]
 VIRTUAL_USER_COUNT = 0
 BASE_WORLD_SIZE = 300
 BULLET_PER_PLANE = 130
@@ -12,9 +13,9 @@ world = null
 
 class World
 	constructor: (@now) ->
-		setTimeout (=> @createBullet()), 1000/60
 		@planes = {}
 		@bullets = {}
+		@bulletSpace = new space.Space()
 		@planeId = 1
 		@bulletId = -1
 		@planeCount = VIRTUAL_USER_COUNT
@@ -67,10 +68,10 @@ class World
 			@now.updatePlane syncPlane
 
 	computeWorldSize: ->
-		return Math.max(100,Math.sqrt(@planeCount) * BASE_WORLD_SIZE)
+		return Math.max(100,Math.sqrt(1+0.1*@planeCount) * BASE_WORLD_SIZE)
 
 	computeTotalBulletCount: ->
-		return @planeCount * BULLET_PER_PLANE
+		return (1+@planeCount*0.2) * BULLET_PER_PLANE
 
 	update: ->
 		# update bullet positions and kill far away bullets
@@ -79,8 +80,10 @@ class World
 		for idx, eachBullet of @bullets
 			if eachBullet.isLive(@computeWorldSize())
 				eachBullet.update()
+				@bulletSpace.update eachBullet
 				currentBulletCount++
 			else
+				@bulletSpace.remove eachBullet
 				toDie.push idx
 
 		for idx in toDie
@@ -91,7 +94,8 @@ class World
 		# create new bullet
 		totalBulletCount = @computeTotalBulletCount()
 		while currentBulletCount < totalBulletCount
-			@createBullet()
+			newBullet = @createBullet()
+			@bulletSpace.add newBullet
 			currentBulletCount++
 
 		# push bullets by plane
@@ -99,19 +103,23 @@ class World
 			plane.computePlayTime()
 			if plane.dead
 				continue
-			for __, bullet of @bullets
-				if plane.near(bullet, 5)
+			@bulletSpace.foreach2 plane.x,plane.y,5, (bullet) =>
+				if plane.near(bullet, 4)
 					plane.client.now.youDead()
 					plane.die(@now.updatePlane)
 					@now.updatePlane plane
 
-				if plane.firing and not plane.dead
-					if plane.near(bullet, 120)
+			if plane.firing and not plane.dead
+				updated={}
+				@bulletSpace.foreach2 plane.x,plane.y,120, (bullet) =>
+					if plane.near(bullet, 120) and not updated[bullet.id]?
+						updated[bullet.id] = 1
 						angularDiff = plane.angularDiff bullet
 						angularDiff += 2*Math.PI while angularDiff < -Math.PI
 						angularDiff -= 2*Math.PI while angularDiff > +Math.PI
 						if Math.abs(angularDiff) < Math.PI/6
-							bullet.pushAway plane, (120-plane.distance(bullet))*3/120
+							bullet.pushAway plane, (120-plane.distance(bullet))*12/120
+							@bulletSpace.update bullet
 							@now.updateBullet bullet
 
 	onDisconnect: (client) ->
@@ -170,7 +178,10 @@ class World
 				vsize = Math.sqrt(vx*vx + vy*vy)
 				vx/=vsize
 				vy/=vsize
-				speed = Math.random() * (NEW_BULLET_SPEED_RANGE[1] - NEW_BULLET_SPEED_RANGE[0]) + NEW_BULLET_SPEED_RANGE[0]
+				speedPick = Math.floor(Math.random() * NEW_BULLET_SPEED_RANGE_LIST.length)
+				speedRange = NEW_BULLET_SPEED_RANGE_LIST[speedPick]
+				speed = Math.random() * (speedRange[1] - speedRange[0]) + speedRange[0]
+				#speed = Math.random() * (NEW_BULLET_SPEED_RANGE[1] - NEW_BULLET_SPEED_RANGE[0]) + NEW_BULLET_SPEED_RANGE[0]
 				vx *= speed
 				vy *= speed
 				newBullet = new bullet.Bullet(
@@ -198,7 +209,9 @@ class World
 			vsize = Math.sqrt(vx*vx + vy*vy)
 			vx/=vsize
 			vy/=vsize
-			speed = Math.random() * (NEW_BULLET_SPEED_RANGE[1] - NEW_BULLET_SPEED_RANGE[0]) + NEW_BULLET_SPEED_RANGE[0]
+			speedPick = Math.floor(Math.random() * NEW_BULLET_SPEED_RANGE_LIST.length)
+			speedRange = NEW_BULLET_SPEED_RANGE_LIST[speedPick]
+			speed = Math.random() * (speedRange[1] - speedRange[0]) + speedRange[0]
 			vx *= speed
 			vy *= speed
 			newBullet = new bullet.Bullet(

@@ -154,7 +154,7 @@ class Plane extends Entity
 		ctx.stroke()
 		ctx.fill()
 		t = time()/10 % 30
-		if @firing
+		if @firing and not @dead
 			for x in [0, 30, 60, 90]
 				if x == 90
 					cv = Math.floor(t*255/30)
@@ -166,7 +166,7 @@ class Plane extends Entity
 		ctx.strokeStyle = '#000000'
 		ctx.fillStyle = '#000000'
 		ctx.globalAlpha = 1.0
-		if @dead
+		if @dead and @isMe()
 			ctx.textAlign = 'center'
 			ctx.font = '20px helvetica'
 			ctx.fillText("You died " + @deadCount + " time(s).",0,0)
@@ -241,7 +241,7 @@ class World
 		if not @planeCount?
 			return
 		if not @lastRenderedBackgroundSize?
-			@lastRenderedBackgroundSize = Math.sqrt(@planeCount) * BASE_RADIUS
+			@lastRenderedBackgroundSize = Math.sqrt(1+0.1*@planeCount) * BASE_RADIUS
 		w = ctx.canvas.width
 		h = ctx.canvas.height
 		ctx.globalCompositeOperation = 'source-over'
@@ -249,7 +249,7 @@ class World
 		ctx.fillRect -w/2, -h/2, w, h
 		ctx.globalCompositeOperation = 'destination-out'
 		ctx.beginPath()
-		targetRadius = Math.sqrt(@planeCount) * BASE_RADIUS
+		targetRadius = Math.sqrt(1+0.1*@planeCount) * BASE_RADIUS
 		if Math.abs(targetRadius - @lastRenderedBackgroundSize) < 10
 			@lastRenderedBackgroundSize = targetRadius
 		if @lastRenderedBackgroundSize < targetRadius
@@ -325,14 +325,15 @@ class Game
 			v.push [(plane.playTime - plane.deadCount*5000) / (plane.deadCount+1), plane.id]
 		v.sort (l,r)->
 			return - l[0] + r[0]
-		v.reverse()
 		p = @world.getMyPlane()
 		if not p?
 			return
-		s = 'I am Plane '+p.id+'<br>Rank by avg play time per life<br>'
+		s = ''
+		s += 'WSAD to move, Click to push bullets<br>'
+		s += 'I am Plane '+p.id+'<br>Rank by avg play time per life<br>'
 		i = 0
 		while i < 10 and i < v.length
-			s += 'Plane ' + v[i][1] + ' : ' + (v[i][0]/1000).toFixed(1) + '<br>'
+			s += 'Plane ' + v[i][1] + ' : ' + (v[i][0]/1000).toFixed(1) + ' / ' + @world.planes[v[i][1]].deadCount + '<br>'
 			i+=1
 		$('#rankStat').html(s)
 
