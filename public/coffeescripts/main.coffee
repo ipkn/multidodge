@@ -28,6 +28,9 @@ keyboardHandler =
 game = null
 myPlaneId = null
 
+now.killedBy = (planeId, dealer) ->
+	game.killedBy planeId, dealer
+	
 now.youDead = ->
 	game.die()
 
@@ -101,6 +104,7 @@ class Plane extends Entity
 		@exciting = meta.exciting
 		@maxExciting = meta.maxExciting
 		@name = meta.name
+		@kill = meta.kill
 	isMe: ->
 		@id == myPlaneId
 	update: (delta = 1.0/60)->
@@ -315,6 +319,7 @@ class World
 				@planes[plane.id] = new Plane(plane)
 				#@planes[newPlane.id].sync plane
 			else
+				@planes[plane.id].kill = plane.kill
 				@planes[plane.id].dead = plane.dead
 				@planes[plane.id].deadCount = plane.deadCount
 				@planes[plane.id].playTime = plane.playTime
@@ -341,8 +346,100 @@ class Game
 		@world = new World
 		now.helloServer()
 
+	killedBy: (planeId, dealer) ->
+		@killMsgIndex ?= 0
+		@killMsgIndex++
+		killed = @world.planes[planeId]
+		if not killed?
+			return
+		kills = ''
+		if dealer.length == 0
+			kills = '(environment)'
+		else
+			kills = ''
+			killsCount = 0
+			for id in dealer
+				p = @world.planes[id]
+				if not p?
+					if killsCount == 0
+						killsCount = 1
+					continue
+				if not p.name?
+					if killsCount == 0
+						killsCount = 1
+					continue
+				if killsCount == 0
+					if p.id == myPlaneId
+						kills = '<span style="color:#19f">'+ p.name + '</span>'
+					else
+						kills = p.name
+				else if second
+					kills += ' ('
+					if p.id == myPlaneId
+						kills += '<span style="color:#19f">'+ p.name + '</span>'
+					else
+						kills += p.name
+				else
+					kills += ', '
+					if p.id == myPlaneId
+						kills += '<span style="color:#19f">'+ p.name + '</span>'
+					else
+						kills += p.name
+				killsCount++
+			if killsCount > 1
+				kills += ')'
+
+			if kills == ''
+				kills = '(unknown)'
+		killedName = killed.name
+		if killed.id == myPlaneId
+			killedName = '<span style="color:#19f">'+ killedName + '</span>'
+
+		$('#killStat').append("""<div id='kmsg#{@killMsgIndex}'>#{kills} -> #{killedName}</div>""")
+		msgIndex = @killMsgIndex
+		setTimeout (=> $('#kmsg'+msgIndex).remove()), 10000
 	update: ->
 		@world.update()
+		p = @world.getMyPlane()
+		if not p?
+			return
+		s = ''
+		s += 'WSAD to move, Click to push bullets<br>'
+		s += 'I am Plane '+p.id+'<br>'
+		v = []
+		for idx, plane of @world.planes
+			if not plane.playTime?
+				continue
+			v.push [plane.kill,plane.deadCount,plane.id]
+		v.sort (l,r)->
+			if l[0] < r[0]
+				return 1
+			if l[0] > r[0]
+				return -1
+			if l[1] < r[1]
+				return -1
+			if l[1] > r[1]
+				return 1
+			if l[2] < r[2]
+				return 1
+			if l[2] > r[2]
+				return -1
+		s += '<br>Rank by kill<br>'
+		i = 0
+		while i < 10 and i < v.length
+			if v[i][2] == myPlaneId
+				s += '<span style="color:#19f">'
+			p = @world.planes[v[i][2]]
+			if p.name?
+				s += p.name
+			else
+				s += 'Plane ' + v[i][2]
+			s += ' : '
+			s += v[i][0]
+			s += ' / ' + v[i][1] + '<br>'
+			if v[i][2] == myPlaneId
+				s += '</span>'
+			i+=1
 		v = []
 		for idx, plane of @world.planes
 			if not plane.playTime?
@@ -350,12 +447,7 @@ class Game
 			v.push [(plane.playTime - plane.deadCount*5000) / (plane.deadCount+1), plane.id]
 		v.sort (l,r)->
 			return - l[0] + r[0]
-		p = @world.getMyPlane()
-		if not p?
-			return
-		s = ''
-		s += 'WSAD to move, Click to push bullets<br>'
-		s += 'I am Plane '+p.id+'<br>Rank by avg play time per life<br>'
+		s += '<br>Rank by avg play time per life<br>'
 		i = 0
 		while i < 10 and i < v.length
 			if v[i][1] == myPlaneId

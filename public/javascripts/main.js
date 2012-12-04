@@ -42,6 +42,10 @@
 
   myPlaneId = null;
 
+  now.killedBy = function(planeId, dealer) {
+    return game.killedBy(planeId, dealer);
+  };
+
   now.youDead = function() {
     return game.die();
   };
@@ -144,6 +148,7 @@
       this.exciting = meta.exciting;
       this.maxExciting = meta.maxExciting;
       this.name = meta.name;
+      this.kill = meta.kill;
     }
 
     Plane.prototype.isMe = function() {
@@ -441,6 +446,7 @@
         if (plane.id !== myPlaneId && plane.id in this.planes) {
           return this.planes[plane.id] = new Plane(plane);
         } else {
+          this.planes[plane.id].kill = plane.kill;
           this.planes[plane.id].dead = plane.dead;
           this.planes[plane.id].deadCount = plane.deadCount;
           this.planes[plane.id].playTime = plane.playTime;
@@ -478,24 +484,117 @@
       now.helloServer();
     }
 
+    Game.prototype.killedBy = function(planeId, dealer) {
+      var id, killed, killedName, kills, killsCount, msgIndex, p, _i, _len, _ref;
+      var _this = this;
+      if ((_ref = this.killMsgIndex) == null) this.killMsgIndex = 0;
+      this.killMsgIndex++;
+      killed = this.world.planes[planeId];
+      if (!(killed != null)) return;
+      kills = '';
+      if (dealer.length === 0) {
+        kills = '(environment)';
+      } else {
+        kills = '';
+        killsCount = 0;
+        for (_i = 0, _len = dealer.length; _i < _len; _i++) {
+          id = dealer[_i];
+          p = this.world.planes[id];
+          if (!(p != null)) {
+            if (killsCount === 0) killsCount = 1;
+            continue;
+          }
+          if (!(p.name != null)) {
+            if (killsCount === 0) killsCount = 1;
+            continue;
+          }
+          if (killsCount === 0) {
+            if (p.id === myPlaneId) {
+              kills = '<span style="color:#19f">' + p.name + '</span>';
+            } else {
+              kills = p.name;
+            }
+          } else if (second) {
+            kills += ' (';
+            if (p.id === myPlaneId) {
+              kills += '<span style="color:#19f">' + p.name + '</span>';
+            } else {
+              kills += p.name;
+            }
+          } else {
+            kills += ', ';
+            if (p.id === myPlaneId) {
+              kills += '<span style="color:#19f">' + p.name + '</span>';
+            } else {
+              kills += p.name;
+            }
+          }
+          killsCount++;
+        }
+        if (killsCount > 1) kills += ')';
+        if (kills === '') kills = '(unknown)';
+      }
+      killedName = killed.name;
+      if (killed.id === myPlaneId) {
+        killedName = '<span style="color:#19f">' + killedName + '</span>';
+      }
+      $('#killStat').append("<div id='kmsg" + this.killMsgIndex + "'>" + kills + " -> " + killedName + "</div>");
+      msgIndex = this.killMsgIndex;
+      return setTimeout((function() {
+        return $('#kmsg' + msgIndex).remove();
+      }), 10000);
+    };
+
     Game.prototype.update = function() {
-      var i, idx, p, plane, s, v, _ref, _ref2;
+      var i, idx, p, plane, s, v, _ref, _ref2, _ref3;
       this.world.update();
+      p = this.world.getMyPlane();
+      if (!(p != null)) return;
+      s = '';
+      s += 'WSAD to move, Click to push bullets<br>';
+      s += 'I am Plane ' + p.id + '<br>';
       v = [];
       _ref = this.world.planes;
       for (idx in _ref) {
         plane = _ref[idx];
+        if (!(plane.playTime != null)) continue;
+        v.push([plane.kill, plane.deadCount, plane.id]);
+      }
+      v.sort(function(l, r) {
+        if (l[0] < r[0]) return 1;
+        if (l[0] > r[0]) return -1;
+        if (l[1] < r[1]) return -1;
+        if (l[1] > r[1]) return 1;
+        if (l[2] < r[2]) return 1;
+        if (l[2] > r[2]) return -1;
+      });
+      s += '<br>Rank by kill<br>';
+      i = 0;
+      while (i < 10 && i < v.length) {
+        if (v[i][2] === myPlaneId) s += '<span style="color:#19f">';
+        p = this.world.planes[v[i][2]];
+        if (p.name != null) {
+          s += p.name;
+        } else {
+          s += 'Plane ' + v[i][2];
+        }
+        s += ' : ';
+        s += v[i][0];
+        s += ' / ' + v[i][1] + '<br>';
+        if (v[i][2] === myPlaneId) s += '</span>';
+        i += 1;
+      }
+      v = [];
+      _ref2 = this.world.planes;
+      for (idx in _ref2) {
+        plane = _ref2[idx];
         if (!(plane.playTime != null)) continue;
         v.push([(plane.playTime - plane.deadCount * 5000) / (plane.deadCount + 1), plane.id]);
       }
       v.sort(function(l, r) {
         return -l[0] + r[0];
       });
-      p = this.world.getMyPlane();
-      if (!(p != null)) return;
-      s = '';
-      s += 'WSAD to move, Click to push bullets<br>';
-      s += 'I am Plane ' + p.id + '<br>Rank by avg play time per life<br>';
+      s += '<br>Rank by avg play time per life<br>';
       i = 0;
       while (i < 10 && i < v.length) {
         if (v[i][1] === myPlaneId) s += '<span style="color:#19f">';
@@ -513,9 +612,9 @@
       }
       s += '<br>Rank by exciting(비비기,절묘도)<br>score : max (current)<br>';
       v = [];
-      _ref2 = this.world.planes;
-      for (idx in _ref2) {
-        plane = _ref2[idx];
+      _ref3 = this.world.planes;
+      for (idx in _ref3) {
+        plane = _ref3[idx];
         if (!(plane.exciting != null)) continue;
         v.push([plane.maxExciting, plane.id]);
       }

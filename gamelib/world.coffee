@@ -4,7 +4,7 @@ space = require('./space')
 NEW_BULLET_SPEED_RANGE_LIST = [[50, 50], [30,60],[100,120]]
 VIRTUAL_USER_COUNT = 0
 BASE_WORLD_SIZE = 300
-BULLET_PER_PLANE = 70#130
+BULLET_PER_PLANE = 60#130
 MAX_BULLET_PUSH_POWER = 24#12
 
 flipCoin = (p) ->
@@ -82,8 +82,13 @@ class World
 		# update bullet positions and kill far away bullets
 		currentBulletCount = 0
 		toDie = []
+		updatedPlanes = {}
+		updatedBullets = {}
 		for idx, eachBullet of @bullets
 			if eachBullet.isLive(@computeWorldSize())
+				if eachBullet.checkReflect @computeWorldSize()
+					updatedBullets[idx] = eachBullet
+
 				eachBullet.update()
 				@bulletSpace.update eachBullet
 				currentBulletCount++
@@ -103,8 +108,6 @@ class World
 			@bulletSpace.add newBullet
 			currentBulletCount++
 
-		updatedPlanes = {}
-		updatedBullets = {}
 		# push bullets by plane
 		for _, plane of @planes
 
@@ -113,9 +116,13 @@ class World
 				continue
 			@bulletSpace.foreach2 plane.x,plane.y,10, (bullet) =>
 				if plane.near(bullet, 4)
+					dealer = bullet.getDealer()
+					if dealer.length > 0 and @planes[dealer[0]]?
+						@planes[dealer[0]].kill += 1
 					plane.client.now.youDead()
 					plane.die(@now.updatePlane)
 					updatedPlanes[plane.id]=plane
+					@now.killedBy plane.id, dealer
 				else if plane.near(bullet, 10)
 					d = (plane.distance bullet)
 					plane.exciting += 1/d/d
@@ -160,10 +167,10 @@ class World
 
 	createPlane: (client) ->
 		id = @planeId
-		console.log client, id
 		@planeId++
 		@planes[id] = newPlane = new plane.Plane(id)
 		@planeCount++
+		console.log client, id, 'active user',@planeCount
 		@now.updatePlaneCount @planeCount
 
 		newPlane.setClient client
