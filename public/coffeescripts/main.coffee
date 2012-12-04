@@ -8,6 +8,7 @@ getContext = ->
 	ctx.setTransform(1,0,0,1,window.innerWidth/2, window.innerHeight/2)
 	ctx
 flipCanvas = ->
+	return
 	mainctx = $('#maincanvas')[0].getContext('2d')
 	viewctx = $('#viewcanvas')[0].getContext('2d')
 	w = viewctx.canvas.width = window.innerWidth
@@ -152,7 +153,10 @@ class Plane extends Entity
 		ctx.lineTo(@x + Math.cos(@dir)*LONG_RADIUS, @y + Math.sin(@dir)*LONG_RADIUS)
 		ctx.closePath()
 		ctx.stroke()
+		if @isMe()
+			ctx.fillStyle = '#16f'
 		ctx.fill()
+		ctx.fillStyle = '#000000'
 		t = time()/10 % 30
 		if @firing and not @dead
 			for x in [0, 30, 60, 90]
@@ -223,6 +227,10 @@ class Player extends Plane
 			@ay = 0
 		if now.syncPosition?
 			now.syncPosition @x, @y, @vx, @vy, @ax, @ay
+		if @lastdx != dx or @lastdy != dy
+			console.log dx, dy
+			@lastdx = dx
+			@lastdy = dy
 
 	update: (delta = 1.0/60) ->
 		super delta
@@ -345,11 +353,15 @@ class Game
 		s += 'I am Plane '+p.id+'<br>Rank by avg play time per life<br>'
 		i = 0
 		while i < 10 and i < v.length
+			if v[i][1] == myPlaneId
+				s += '<span style="color:#19f">'
 			s += 'Plane ' + v[i][1] + ' : '
 			s += (v[i][0]/1000).toFixed(1)
 			s += ' / ' + @world.planes[v[i][1]].deadCount + '<br>'
+			if v[i][1] == myPlaneId
+				s += '</span>'
 			i+=1
-		s += '<br>Rank by exciting (비비기)<br>'
+		s += '<br>Rank by exciting(비비기)<br>score : max (current)<br>'
 		v = []
 		for idx, plane of @world.planes
 			if not plane.exciting?
@@ -359,10 +371,14 @@ class Game
 			return - l[0] + r[0]
 		i = 0
 		while i < 10 and i < v.length
+			if v[i][1] == myPlaneId
+				s += '<span style="color:#19f">'
 			s += 'Plane ' + v[i][1] + ' : '
 			p = @world.planes[v[i][1]]
 			s += p.maxExciting.toFixed(3)
 			s += ' (' + p.exciting.toFixed(3) + ')<br>'
+			if v[i][1] == myPlaneId
+				s += '</span>'
 			i+=1
 		$('#rankStat').html(s)
 
@@ -463,6 +479,12 @@ now.ready ->
 		$(document).keyup (e) ->
 			if keyboardHandler[e.which]?
 				game.processCommand keyboardHandler[e.which], false
+		$('#rankStat').keydown (e) ->
+			if keyboardHandler[e.which]?
+				game.processCommand keyboardHandler[e.which], true
+		$('#rankStat').keyup (e) ->
+			if keyboardHandler[e.which]?
+				game.processCommand keyboardHandler[e.which], false
 		$(document).mousemove (e) ->
 			x = e.pageX
 			y = e.pageY
@@ -482,5 +504,6 @@ now.ready ->
 		setInterval (->
 			p = game.world.getMyPlane()
 			if p?
-				now.syncPosition p.x, p.y, p.vx, p.vy, p.ax, p.ay), 500
+				if now.syncPosition?
+					now.syncPosition p.x, p.y, p.vx, p.vy, p.ax, p.ay), 500
 

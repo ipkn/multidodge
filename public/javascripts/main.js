@@ -19,6 +19,7 @@
 
   flipCanvas = function() {
     var h, mainctx, viewctx, w;
+    return;
     mainctx = $('#maincanvas')[0].getContext('2d');
     viewctx = $('#viewcanvas')[0].getContext('2d');
     w = viewctx.canvas.width = window.innerWidth;
@@ -208,7 +209,9 @@
       ctx.lineTo(this.x + Math.cos(this.dir) * LONG_RADIUS, this.y + Math.sin(this.dir) * LONG_RADIUS);
       ctx.closePath();
       ctx.stroke();
+      if (this.isMe()) ctx.fillStyle = '#16f';
       ctx.fill();
+      ctx.fillStyle = '#000000';
       t = time() / 10 % 30;
       if (this.firing && !this.dead) {
         _ref = [0, 30, 60, 90];
@@ -307,7 +310,12 @@
         this.ay = 0;
       }
       if (now.syncPosition != null) {
-        return now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
+        now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
+      }
+      if (this.lastdx !== dx || this.lastdy !== dy) {
+        console.log(dx, dy);
+        this.lastdx = dx;
+        return this.lastdy = dy;
       }
     };
 
@@ -484,12 +492,14 @@
       s += 'I am Plane ' + p.id + '<br>Rank by avg play time per life<br>';
       i = 0;
       while (i < 10 && i < v.length) {
+        if (v[i][1] === myPlaneId) s += '<span style="color:#19f">';
         s += 'Plane ' + v[i][1] + ' : ';
         s += (v[i][0] / 1000).toFixed(1);
         s += ' / ' + this.world.planes[v[i][1]].deadCount + '<br>';
+        if (v[i][1] === myPlaneId) s += '</span>';
         i += 1;
       }
-      s += '<br>Rank by exciting (비비기)<br>';
+      s += '<br>Rank by exciting(비비기)<br>score : max (current)<br>';
       v = [];
       _ref2 = this.world.planes;
       for (idx in _ref2) {
@@ -502,10 +512,12 @@
       });
       i = 0;
       while (i < 10 && i < v.length) {
+        if (v[i][1] === myPlaneId) s += '<span style="color:#19f">';
         s += 'Plane ' + v[i][1] + ' : ';
         p = this.world.planes[v[i][1]];
         s += p.maxExciting.toFixed(3);
         s += ' (' + p.exciting.toFixed(3) + ')<br>';
+        if (v[i][1] === myPlaneId) s += '</span>';
         i += 1;
       }
       return $('#rankStat').html(s);
@@ -649,6 +661,16 @@
           return game.processCommand(keyboardHandler[e.which], false);
         }
       });
+      $('#rankStat').keydown(function(e) {
+        if (keyboardHandler[e.which] != null) {
+          return game.processCommand(keyboardHandler[e.which], true);
+        }
+      });
+      $('#rankStat').keyup(function(e) {
+        if (keyboardHandler[e.which] != null) {
+          return game.processCommand(keyboardHandler[e.which], false);
+        }
+      });
       $(document).mousemove(function(e) {
         var x, y;
         x = e.pageX;
@@ -672,7 +694,11 @@
       return setInterval((function() {
         var p;
         p = game.world.getMyPlane();
-        if (p != null) return now.syncPosition(p.x, p.y, p.vx, p.vy, p.ax, p.ay);
+        if (p != null) {
+          if (now.syncPosition != null) {
+            return now.syncPosition(p.x, p.y, p.vx, p.vy, p.ax, p.ay);
+          }
+        }
       }), 500);
     });
   });
