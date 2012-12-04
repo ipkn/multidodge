@@ -4,7 +4,7 @@ space = require('./space')
 NEW_BULLET_SPEED_RANGE_LIST = [[50, 50], [30,60],[100,120]]
 VIRTUAL_USER_COUNT = 0
 BASE_WORLD_SIZE = 300
-BULLET_PER_PLANE = 50#130
+BULLET_PER_PLANE = 70#130
 MAX_BULLET_PUSH_POWER = 24#12
 
 flipCoin = (p) ->
@@ -167,6 +167,7 @@ class World
 		@now.updatePlaneCount @planeCount
 
 		newPlane.setClient client
+		newPlane.name = client.now.name
 		client.user.id = id
 		client.now.notifyMyPlane id
 		@now.updatePlane newPlane

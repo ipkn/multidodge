@@ -1,5 +1,5 @@
 (function() {
-  var BASE_RADIUS, Bullet, Entity, Game, MAX_SPEED, PI, Plane, Player, World, flipCanvas, game, getContext, keyboardHandler, myPlaneId, onEachFrame, time;
+  var BASE_RADIUS, Bullet, Entity, Game, MAX_SPEED, PI, Plane, Player, World, flipCanvas, game, getContext, keyboardHandler, myName, myPlaneId, onEachFrame, time;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   PI = Math.PI;
@@ -143,6 +143,7 @@
       if ((_ref = this.playTime) == null) this.playTime = 0;
       this.exciting = meta.exciting;
       this.maxExciting = meta.maxExciting;
+      this.name = meta.name;
     }
 
     Plane.prototype.isMe = function() {
@@ -213,6 +214,11 @@
       ctx.fill();
       ctx.fillStyle = '#000000';
       t = time() / 10 % 30;
+      if (time() - this.lookOverTime < 1000 && (this.name != null)) {
+        ctx.textAlign = 'center';
+        ctx.font = '12px helvetica';
+        ctx.fillText(this.name, this.x, this.y + 20);
+      }
       if (this.firing && !this.dead) {
         _ref = [0, 30, 60, 90];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -493,13 +499,19 @@
       i = 0;
       while (i < 10 && i < v.length) {
         if (v[i][1] === myPlaneId) s += '<span style="color:#19f">';
-        s += 'Plane ' + v[i][1] + ' : ';
+        p = this.world.planes[v[i][1]];
+        if (p.name != null) {
+          s += p.name;
+        } else {
+          s += 'Plane ' + v[i][1];
+        }
+        s += ' : ';
         s += (v[i][0] / 1000).toFixed(1);
         s += ' / ' + this.world.planes[v[i][1]].deadCount + '<br>';
         if (v[i][1] === myPlaneId) s += '</span>';
         i += 1;
       }
-      s += '<br>Rank by exciting(비비기)<br>score : max (current)<br>';
+      s += '<br>Rank by exciting(비비기,절묘도)<br>score : max (current)<br>';
       v = [];
       _ref2 = this.world.planes;
       for (idx in _ref2) {
@@ -513,8 +525,13 @@
       i = 0;
       while (i < 10 && i < v.length) {
         if (v[i][1] === myPlaneId) s += '<span style="color:#19f">';
-        s += 'Plane ' + v[i][1] + ' : ';
         p = this.world.planes[v[i][1]];
+        if (p.name != null) {
+          s += p.name;
+        } else {
+          s += 'Plane ' + v[i][1];
+        }
+        s += ' : ';
         s += p.maxExciting.toFixed(3);
         s += ' (' + p.exciting.toFixed(3) + ')<br>';
         if (v[i][1] === myPlaneId) s += '</span>';
@@ -528,12 +545,24 @@
     };
 
     Game.prototype.look = function(x, y) {
+      var dx, dy, idx, plane, _ref, _results;
       if (!(this.ctx != null)) return;
       x -= this.ctx.canvas.width / 2;
       y -= this.ctx.canvas.height / 2;
-      if (this.world.getMyPlane() != null) {
-        return this.world.getMyPlane().look(x, y);
+      if (this.world.getMyPlane() != null) this.world.getMyPlane().look(x, y);
+      _ref = this.world.planes;
+      _results = [];
+      for (idx in _ref) {
+        plane = _ref[idx];
+        dx = plane.x - x;
+        dy = plane.y - y;
+        if (dx * dx + dy * dy < 50 * 50) {
+          _results.push(plane.lookOverTime = time());
+        } else {
+          _results.push(void 0);
+        }
       }
+      return _results;
     };
 
     Game.prototype.startFiring = function() {
@@ -648,7 +677,10 @@
     };
   }
 
+  myName = prompt('what is your name');
+
   now.ready(function() {
+    now.name = myName;
     return $(document).ready(function() {
       var x;
       $(document).keydown(function(e) {

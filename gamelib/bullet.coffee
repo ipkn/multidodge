@@ -17,8 +17,8 @@ class Bullet
 		if dsize
 			dx /= dsize
 			dy /= dsize
-			@vx -= dx * force * 3 / @r
-			@vy -= dy * force * 3 / @r
+			@vx -= dx * force * 6 / @r / @r
+			@vy -= dy * force * 6 / @r / @r
 
 
 module.exports =

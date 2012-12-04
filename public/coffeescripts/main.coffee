@@ -100,6 +100,7 @@ class Plane extends Entity
 		@playTime ?= 0
 		@exciting = meta.exciting
 		@maxExciting = meta.maxExciting
+		@name = meta.name
 	isMe: ->
 		@id == myPlaneId
 	update: (delta = 1.0/60)->
@@ -158,6 +159,10 @@ class Plane extends Entity
 		ctx.fill()
 		ctx.fillStyle = '#000000'
 		t = time()/10 % 30
+		if time() - @lookOverTime < 1000 and @name?
+			ctx.textAlign = 'center'
+			ctx.font = '12px helvetica'
+			ctx.fillText @name, @x, @y+20
 		if @firing and not @dead
 			for x in [0, 30, 60, 90]
 				if x == 90
@@ -355,13 +360,18 @@ class Game
 		while i < 10 and i < v.length
 			if v[i][1] == myPlaneId
 				s += '<span style="color:#19f">'
-			s += 'Plane ' + v[i][1] + ' : '
+			p = @world.planes[v[i][1]]
+			if p.name?
+				s += p.name
+			else
+				s += 'Plane ' + v[i][1]
+			s += ' : '
 			s += (v[i][0]/1000).toFixed(1)
 			s += ' / ' + @world.planes[v[i][1]].deadCount + '<br>'
 			if v[i][1] == myPlaneId
 				s += '</span>'
 			i+=1
-		s += '<br>Rank by exciting(비비기)<br>score : max (current)<br>'
+		s += '<br>Rank by exciting(비비기,절묘도)<br>score : max (current)<br>'
 		v = []
 		for idx, plane of @world.planes
 			if not plane.exciting?
@@ -373,8 +383,12 @@ class Game
 		while i < 10 and i < v.length
 			if v[i][1] == myPlaneId
 				s += '<span style="color:#19f">'
-			s += 'Plane ' + v[i][1] + ' : '
 			p = @world.planes[v[i][1]]
+			if p.name?
+				s += p.name
+			else
+				s += 'Plane ' + v[i][1]
+			s += ' : '
 			s += p.maxExciting.toFixed(3)
 			s += ' (' + p.exciting.toFixed(3) + ')<br>'
 			if v[i][1] == myPlaneId
@@ -392,6 +406,11 @@ class Game
 		y -= @ctx.canvas.height / 2
 		if @world.getMyPlane()?
 			@world.getMyPlane().look x,y
+		for idx,plane of @world.planes
+			dx = plane.x - x
+			dy = plane.y - y
+			if dx*dx+dy*dy < 50*50
+				plane.lookOverTime = time()
 	startFiring: ->
 		if @world.getMyPlane()?
 			@world.getMyPlane().startFiring()
@@ -471,7 +490,9 @@ else
 	onEachFrame = (cb) ->
 		setInterval cb, 1000/60
 
+myName = prompt('what is your name')
 now.ready ->
+	now.name = myName
 	$(document).ready ->
 		$(document).keydown (e) ->
 			if keyboardHandler[e.which]?
