@@ -1,5 +1,5 @@
 class Bullet
-	constructor: (@id, @x=0, @y=0, @vx=0, @vy=0, @ax=0, @ay=0, @r = Math.random()+Math.random()+2) ->
+	constructor: (@id, @x=0, @y=0, @vx=0, @vy=0, @ax=0, @ay=0, @r = Math.random()+Math.random()+1+Math.random()) ->
 
 	update: (delta = 1.0/60)->
 		@vx += @ax*delta
