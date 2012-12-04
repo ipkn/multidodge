@@ -8,14 +8,12 @@ getContext = ->
 	ctx.setTransform(1,0,0,1,window.innerWidth/2, window.innerHeight/2)
 	ctx
 flipCanvas = ->
-	return
-	#canvasIndex = 1-canvasIndex
-	#mainctx = $('#maincanvas')[0].getContext('2d')
-	#viewctx = $('#viewcanvas')[0].getContext('2d')
-	#w = viewctx.canvas.width = window.innerWidth
-	#h =viewctx.canvas.height = window.innerHeight
+	mainctx = $('#maincanvas')[0].getContext('2d')
+	viewctx = $('#viewcanvas')[0].getContext('2d')
+	w = viewctx.canvas.width = window.innerWidth
+	h = viewctx.canvas.height = window.innerHeight
 	#viewctx.clearRect 0,0,w,h
-	#viewctx.drawImage mainctx.canvas,0,0
+	viewctx.drawImage mainctx.canvas,0,0
 
 time = ->
 	return (new Date).getTime()
@@ -195,7 +193,7 @@ class Player extends Plane
 				if time() - @lastLook < 150 or @firing and time() - @lastLook < 100
 					return
 			@lastLook = time()
-			now.syncPosition @x, @y, @vx, @vy, @ax, @ay
+			#now.syncPosition @x, @y, @vx, @vy, @ax, @ay
 			now.syncTarget x, y, @dir
 	accelerate: (direction, onoff) ->
 		if onoff
@@ -235,13 +233,23 @@ class World
 	update: ->
 		for id, plane of @planes
 			plane.update()
+			x=plane.x
+			y=plane.y
+			w = @computeWorldSize()
+			if x*x+y*y > w*w
+				d=Math.sqrt(x*x+y*y)
+				plane.x *= w/d
+				plane.y *= w/d
+
 		for id, bullet of @bullets
 			bullet.update()
+	computeWorldSize: ->
+			Math.sqrt(1+0.1*@planeCount) * BASE_RADIUS
 	renderBackground: (ctx)->
 		if not @planeCount?
 			return
 		if not @lastRenderedBackgroundSize?
-			@lastRenderedBackgroundSize = Math.sqrt(1+0.1*@planeCount) * BASE_RADIUS
+			@lastRenderedBackgroundSize = @computeWorldSize()
 		w = ctx.canvas.width
 		h = ctx.canvas.height
 		ctx.globalCompositeOperation = 'source-over'
@@ -249,7 +257,7 @@ class World
 		ctx.fillRect -w/2, -h/2, w, h
 		ctx.globalCompositeOperation = 'destination-out'
 		ctx.beginPath()
-		targetRadius = Math.sqrt(1+0.1*@planeCount) * BASE_RADIUS
+		targetRadius = @computeWorldSize()
 		if Math.abs(targetRadius - @lastRenderedBackgroundSize) < 10
 			@lastRenderedBackgroundSize = targetRadius
 		if @lastRenderedBackgroundSize < targetRadius
@@ -450,3 +458,8 @@ now.ready ->
 		setInterval (->
 			if now.ping?
 				now.ping time()), 5000
+		setInterval (->
+			p = game.world.getMyPlane()
+			if p?
+				now.syncPosition p.x, p.y, p.vx, p.vy, p.ax, p.ay), 500
+

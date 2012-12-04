@@ -17,7 +17,14 @@
     return ctx;
   };
 
-  flipCanvas = function() {};
+  flipCanvas = function() {
+    var h, mainctx, viewctx, w;
+    mainctx = $('#maincanvas')[0].getContext('2d');
+    viewctx = $('#viewcanvas')[0].getContext('2d');
+    w = viewctx.canvas.width = window.innerWidth;
+    h = viewctx.canvas.height = window.innerHeight;
+    return viewctx.drawImage(mainctx.canvas, 0, 0);
+  };
 
   time = function() {
     return (new Date).getTime();
@@ -261,7 +268,6 @@
           }
         }
         this.lastLook = time();
-        now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
         return now.syncTarget(x, y, this.dir);
       }
     };
@@ -320,11 +326,19 @@
     }
 
     World.prototype.update = function() {
-      var bullet, id, plane, _ref, _ref2, _results;
+      var bullet, d, id, plane, w, x, y, _ref, _ref2, _results;
       _ref = this.planes;
       for (id in _ref) {
         plane = _ref[id];
         plane.update();
+        x = plane.x;
+        y = plane.y;
+        w = this.computeWorldSize();
+        if (x * x + y * y > w * w) {
+          d = Math.sqrt(x * x + y * y);
+          plane.x *= w / d;
+          plane.y *= w / d;
+        }
       }
       _ref2 = this.bullets;
       _results = [];
@@ -335,11 +349,15 @@
       return _results;
     };
 
+    World.prototype.computeWorldSize = function() {
+      return Math.sqrt(1 + 0.1 * this.planeCount) * BASE_RADIUS;
+    };
+
     World.prototype.renderBackground = function(ctx) {
       var h, targetRadius, w;
       if (!(this.planeCount != null)) return;
       if (!(this.lastRenderedBackgroundSize != null)) {
-        this.lastRenderedBackgroundSize = Math.sqrt(1 + 0.1 * this.planeCount) * BASE_RADIUS;
+        this.lastRenderedBackgroundSize = this.computeWorldSize();
       }
       w = ctx.canvas.width;
       h = ctx.canvas.height;
@@ -348,7 +366,7 @@
       ctx.fillRect(-w / 2, -h / 2, w, h);
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
-      targetRadius = Math.sqrt(1 + 0.1 * this.planeCount) * BASE_RADIUS;
+      targetRadius = this.computeWorldSize();
       if (Math.abs(targetRadius - this.lastRenderedBackgroundSize) < 10) {
         this.lastRenderedBackgroundSize = targetRadius;
       }
@@ -623,9 +641,14 @@
       for (x = 0; x <= 5; x++) {
         now.ping(time());
       }
-      return setInterval((function() {
+      setInterval((function() {
         if (now.ping != null) return now.ping(time());
       }), 5000);
+      return setInterval((function() {
+        var p;
+        p = game.world.getMyPlane();
+        if (p != null) return now.syncPosition(p.x, p.y, p.vx, p.vy, p.ax, p.ay);
+      }), 130);
     });
   });
 
