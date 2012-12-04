@@ -1,5 +1,5 @@
 class Plane
-	constructor: (@id, @x=0, @y=0, @vx=0, @vy=0, @ax=0, @ay=0, @dir=0, @targetX=0, @targetY=0, @firing=false, @dead=false, @deadCount=0, @startTime = (new Date()).getTime()) ->
+	constructor: (@id, @x=0, @y=0, @vx=0, @vy=0, @ax=0, @ay=0, @dir=0, @targetX=0, @targetY=0, @firing=false, @dead=false, @deadCount=0, @startTime = (new Date()).getTime(), @exciting=0,@maxExciting=0) ->
 
 	computePlayTime: ->
 		if not @dead
@@ -7,6 +7,7 @@ class Plane
 
 	die: (cb) ->
 		@dead = true
+		@exciting = 0
 		@deadCount++
 		delayed = =>
 			@revive()

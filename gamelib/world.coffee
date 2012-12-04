@@ -102,17 +102,24 @@ class World
 			@bulletSpace.add newBullet
 			currentBulletCount++
 
+		updatedPlanes = {}
 		# push bullets by plane
 		for _, plane of @planes
 
 			plane.computePlayTime()
 			if plane.dead
 				continue
-			@bulletSpace.foreach2 plane.x,plane.y,5, (bullet) =>
+			@bulletSpace.foreach2 plane.x,plane.y,10, (bullet) =>
 				if plane.near(bullet, 4)
 					plane.client.now.youDead()
 					plane.die(@now.updatePlane)
-					@now.updatePlane plane
+					updatedPlanes[plane.id]=plane
+				else if plane.near(bullet, 10)
+					d = (plane.distance bullet)
+					plane.exciting += 1/d/d
+					if plane.maxExciting < plane.exciting
+						plane.maxExciting = plane.exciting
+					updatedPlanes[plane.id]=plane
 
 			if plane.firing and not plane.dead
 				updated={}
@@ -135,6 +142,8 @@ class World
 				d=Math.sqrt(x*x+y*y)
 				plane.x *= w/d
 				plane.y *= w/d
+		for idx, plane of updatedPlanes[plane.id]
+			@now.updatePlane plane
 
 	onDisconnect: (client) ->
 		@deletePlane client.user.id

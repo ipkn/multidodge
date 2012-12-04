@@ -140,6 +140,8 @@
       this.deadCount = meta.deadCount;
       this.playTime = meta.playTime;
       if ((_ref = this.playTime) == null) this.playTime = 0;
+      this.exciting = meta.exciting;
+      this.maxExciting = meta.maxExciting;
     }
 
     Plane.prototype.isMe = function() {
@@ -362,7 +364,7 @@
       w = ctx.canvas.width;
       h = ctx.canvas.height;
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = "#ff0000";
+      ctx.fillStyle = "#ffefc0";
       ctx.fillRect(-w / 2, -h / 2, w, h);
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
@@ -427,7 +429,9 @@
         } else {
           this.planes[plane.id].dead = plane.dead;
           this.planes[plane.id].deadCount = plane.deadCount;
-          return this.planes[plane.id].playTime = plane.playTime;
+          this.planes[plane.id].playTime = plane.playTime;
+          this.planes[plane.id].exciting = plane.exciting;
+          return this.planes[plane.id].maxExciting = plane.maxExciting;
         }
       } else {
         if (plane.id === myPlaneId) {
@@ -461,7 +465,7 @@
     }
 
     Game.prototype.update = function() {
-      var i, idx, p, plane, s, v, _ref;
+      var i, idx, p, plane, s, v, _ref, _ref2;
       this.world.update();
       v = [];
       _ref = this.world.planes;
@@ -480,7 +484,28 @@
       s += 'I am Plane ' + p.id + '<br>Rank by avg play time per life<br>';
       i = 0;
       while (i < 10 && i < v.length) {
-        s += 'Plane ' + v[i][1] + ' : ' + (v[i][0] / 1000).toFixed(1) + ' / ' + this.world.planes[v[i][1]].deadCount + '<br>';
+        s += 'Plane ' + v[i][1] + ' : ';
+        s += (v[i][0] / 1000).toFixed(1);
+        s += ' / ' + this.world.planes[v[i][1]].deadCount + '<br>';
+        i += 1;
+      }
+      s += '<br>Rank by exciting (비비기)<br>';
+      v = [];
+      _ref2 = this.world.planes;
+      for (idx in _ref2) {
+        plane = _ref2[idx];
+        if (!(plane.exciting != null)) continue;
+        v.push([plane.maxExciting, plane.id]);
+      }
+      v.sort(function(l, r) {
+        return -l[0] + r[0];
+      });
+      i = 0;
+      while (i < 10 && i < v.length) {
+        s += 'Plane ' + v[i][1] + ' : ';
+        p = this.world.planes[v[i][1]];
+        s += p.maxExciting.toFixed(3);
+        s += ' (' + p.exciting.toFixed(3) + ')<br>';
         i += 1;
       }
       return $('#rankStat').html(s);
@@ -648,7 +673,7 @@
         var p;
         p = game.world.getMyPlane();
         if (p != null) return now.syncPosition(p.x, p.y, p.vx, p.vy, p.ax, p.ay);
-      }), 130);
+      }), 500);
     });
   });
 

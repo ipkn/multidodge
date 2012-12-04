@@ -97,6 +97,8 @@ class Plane extends Entity
 		@deadCount = meta.deadCount
 		@playTime = meta.playTime
 		@playTime ?= 0
+		@exciting = meta.exciting
+		@maxExciting = meta.maxExciting
 	isMe: ->
 		@id == myPlaneId
 	update: (delta = 1.0/60)->
@@ -253,7 +255,7 @@ class World
 		w = ctx.canvas.width
 		h = ctx.canvas.height
 		ctx.globalCompositeOperation = 'source-over'
-		ctx.fillStyle="#ff0000"
+		ctx.fillStyle="#ffefc0"
 		ctx.fillRect -w/2, -h/2, w, h
 		ctx.globalCompositeOperation = 'destination-out'
 		ctx.beginPath()
@@ -303,6 +305,8 @@ class World
 				@planes[plane.id].dead = plane.dead
 				@planes[plane.id].deadCount = plane.deadCount
 				@planes[plane.id].playTime = plane.playTime
+				@planes[plane.id].exciting = plane.exciting
+				@planes[plane.id].maxExciting = plane.maxExciting
 		else
 			# new plane appear
 			if plane.id == myPlaneId
@@ -341,7 +345,24 @@ class Game
 		s += 'I am Plane '+p.id+'<br>Rank by avg play time per life<br>'
 		i = 0
 		while i < 10 and i < v.length
-			s += 'Plane ' + v[i][1] + ' : ' + (v[i][0]/1000).toFixed(1) + ' / ' + @world.planes[v[i][1]].deadCount + '<br>'
+			s += 'Plane ' + v[i][1] + ' : '
+			s += (v[i][0]/1000).toFixed(1)
+			s += ' / ' + @world.planes[v[i][1]].deadCount + '<br>'
+			i+=1
+		s += '<br>Rank by exciting (비비기)<br>'
+		v = []
+		for idx, plane of @world.planes
+			if not plane.exciting?
+				continue
+			v.push [plane.maxExciting, plane.id]
+		v.sort (l,r)->
+			return - l[0] + r[0]
+		i = 0
+		while i < 10 and i < v.length
+			s += 'Plane ' + v[i][1] + ' : '
+			p = @world.planes[v[i][1]]
+			s += p.maxExciting.toFixed(3)
+			s += ' (' + p.exciting.toFixed(3) + ')<br>'
 			i+=1
 		$('#rankStat').html(s)
 
