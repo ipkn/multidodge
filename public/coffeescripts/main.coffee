@@ -78,6 +78,8 @@ class Bullet extends Entity
 		@y += @vy*delta
 
 	render: (ctx) ->
+		ctx.strokeStyle = '#000000'
+		ctx.fillStyle = '#000000'
 		ctx.beginPath()
 		ctx.arc(@x,@y,@r,0,2*Math.PI)
 		ctx.closePath()
@@ -105,8 +107,20 @@ class Plane extends Entity
 		@maxExciting = meta.maxExciting
 		@name = meta.name
 		@kill = meta.kill
+		@maxMana = meta.maxMana
+		@mana = meta.mana
+		@manaRegen = meta.manaRegen
+		@manaCost = meta.manaCost
 	isMe: ->
 		@id == myPlaneId
+	startFiring: ->
+		if not @firing
+			now.startFiring @dir
+			@firing = true
+	endFiring: ->
+		if @firing
+			now.endFiring @dir
+			@firing = false
 	update: (delta = 1.0/60)->
 		# update position
 		@vx += @ax*delta
@@ -142,6 +156,15 @@ class Plane extends Entity
 				else
 					@dir -= ANGULAR_SPEED
 
+		# update stats
+		if @firing
+			if @mana < @manaCost
+				now.endFiring @dir
+			else
+				@mana = Math.max 0, @mana - @manaCost
+		else
+			@mana = Math.min @maxMana, @mana+@manaRegen
+
 	render: (ctx) ->
 		if @dead
 			ctx.globalAlpha = 0.3
@@ -161,12 +184,15 @@ class Plane extends Entity
 		if @isMe()
 			ctx.fillStyle = '#16f'
 		ctx.fill()
-		ctx.fillStyle = '#000000'
+
+		# name
 		t = time()/10 % 30
 		if time() - @lookOverTime < 1000 and @name?
 			ctx.textAlign = 'center'
 			ctx.font = '12px helvetica'
 			ctx.fillText @name, @x, @y+20
+
+		# force
 		if @firing and not @dead
 			for x in [0, 30, 60, 90]
 				if x == 90
@@ -184,17 +210,30 @@ class Plane extends Entity
 			ctx.font = '20px helvetica'
 			ctx.fillText("You died " + @deadCount + " time(s).",0,0)
 
+		# stats
+		if not @dead
+			ctx.lineWidth = lineWidth = 2
+			margin = 5
+			ctx.strokeStyle = '#0000ff'
+
+			manaDelta = (2/3*PI)*@mana/@maxMana
+			manaMid = 3/2*PI
+			manaBegin = manaMid - manaDelta
+			manaEnd = manaMid + manaDelta
+			manaReversed = manaBegin > manaEnd
+			ctx.beginPath()
+			ctx.arc @x, @y, LONG_RADIUS + margin + lineWidth, manaBegin, manaEnd, manaReversed
+			ctx.stroke()
+
+			ctx.strokeStyle = '#000000'
+			ctx.lineWidth = 1
+		ctx.fillStyle = '#000000'
+
 
 class Player extends Plane
 	constructor: (meta) ->
 		super meta
 		@directions = {}
-	startFiring: ->
-		now.startFiring @dir
-		@firing = true
-	endFiring: ->
-		now.endFiring @dir
-		@firing = false
 
 	die: ->
 		# do nothing?
@@ -237,7 +276,7 @@ class Player extends Plane
 		if now.syncPosition?
 			now.syncPosition @x, @y, @vx, @vy, @ax, @ay
 		if @lastdx != dx or @lastdy != dy
-			console.log dx, dy
+			#console.log dx, dy
 			@lastdx = dx
 			@lastdy = dy
 
@@ -325,6 +364,7 @@ class World
 				@planes[plane.id].playTime = plane.playTime
 				@planes[plane.id].exciting = plane.exciting
 				@planes[plane.id].maxExciting = plane.maxExciting
+				@planes[plane.id].firing = plane.firing
 		else
 			# new plane appear
 			if plane.id == myPlaneId

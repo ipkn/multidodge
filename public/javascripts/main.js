@@ -113,6 +113,8 @@
     };
 
     Bullet.prototype.render = function(ctx) {
+      ctx.strokeStyle = '#000000';
+      ctx.fillStyle = '#000000';
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
       ctx.closePath();
@@ -149,10 +151,28 @@
       this.maxExciting = meta.maxExciting;
       this.name = meta.name;
       this.kill = meta.kill;
+      this.maxMana = meta.maxMana;
+      this.mana = meta.mana;
+      this.manaRegen = meta.manaRegen;
+      this.manaCost = meta.manaCost;
     }
 
     Plane.prototype.isMe = function() {
       return this.id === myPlaneId;
+    };
+
+    Plane.prototype.startFiring = function() {
+      if (!this.firing) {
+        now.startFiring(this.dir);
+        return this.firing = true;
+      }
+    };
+
+    Plane.prototype.endFiring = function() {
+      if (this.firing) {
+        now.endFiring(this.dir);
+        return this.firing = false;
+      }
     };
 
     Plane.prototype.update = function(delta) {
@@ -185,22 +205,31 @@
         }
         if (angleDiff >= 0) {
           if (angleDiff < ANGULAR_SPEED) {
-            return this.dir = this.targetDir;
+            this.dir = this.targetDir;
           } else {
-            return this.dir += ANGULAR_SPEED;
+            this.dir += ANGULAR_SPEED;
           }
         } else {
           if (angleDiff > -ANGULAR_SPEED) {
-            return this.dir = this.targetDir;
+            this.dir = this.targetDir;
           } else {
-            return this.dir -= ANGULAR_SPEED;
+            this.dir -= ANGULAR_SPEED;
           }
         }
+      }
+      if (this.firing) {
+        if (this.mana < this.manaCost) {
+          return now.endFiring(this.dir);
+        } else {
+          return this.mana = Math.max(0, this.mana - this.manaCost);
+        }
+      } else {
+        return this.mana = Math.min(this.maxMana, this.mana + this.manaRegen);
       }
     };
 
     Plane.prototype.render = function(ctx) {
-      var LONG_RADIUS, SHORT_RADIUS, cv, t, x, _i, _len, _ref;
+      var LONG_RADIUS, SHORT_RADIUS, cv, lineWidth, manaBegin, manaDelta, manaEnd, manaMid, manaReversed, margin, t, x, _i, _len, _ref;
       if (this.dead) ctx.globalAlpha = 0.3;
       ctx.beginPath();
       LONG_RADIUS = 13;
@@ -217,7 +246,6 @@
       ctx.stroke();
       if (this.isMe()) ctx.fillStyle = '#16f';
       ctx.fill();
-      ctx.fillStyle = '#000000';
       t = time() / 10 % 30;
       if (time() - this.lookOverTime < 1000 && (this.name != null)) {
         ctx.textAlign = 'center';
@@ -243,8 +271,24 @@
       if (this.dead && this.isMe()) {
         ctx.textAlign = 'center';
         ctx.font = '20px helvetica';
-        return ctx.fillText("You died " + this.deadCount + " time(s).", 0, 0);
+        ctx.fillText("You died " + this.deadCount + " time(s).", 0, 0);
       }
+      if (!this.dead) {
+        ctx.lineWidth = lineWidth = 2;
+        margin = 5;
+        ctx.strokeStyle = '#0000ff';
+        manaDelta = (2 / 3 * PI) * this.mana / this.maxMana;
+        manaMid = 3 / 2 * PI;
+        manaBegin = manaMid - manaDelta;
+        manaEnd = manaMid + manaDelta;
+        manaReversed = manaBegin > manaEnd;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, LONG_RADIUS + margin + lineWidth, manaBegin, manaEnd, manaReversed);
+        ctx.stroke();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+      }
+      return ctx.fillStyle = '#000000';
     };
 
     return Plane;
@@ -259,16 +303,6 @@
       Player.__super__.constructor.call(this, meta);
       this.directions = {};
     }
-
-    Player.prototype.startFiring = function() {
-      now.startFiring(this.dir);
-      return this.firing = true;
-    };
-
-    Player.prototype.endFiring = function() {
-      now.endFiring(this.dir);
-      return this.firing = false;
-    };
 
     Player.prototype.die = function() {
       return console.log('ARGH!!!! I died!!!', this.deadCount);
@@ -324,7 +358,6 @@
         now.syncPosition(this.x, this.y, this.vx, this.vy, this.ax, this.ay);
       }
       if (this.lastdx !== dx || this.lastdy !== dy) {
-        console.log(dx, dy);
         this.lastdx = dx;
         return this.lastdy = dy;
       }
@@ -451,7 +484,8 @@
           this.planes[plane.id].deadCount = plane.deadCount;
           this.planes[plane.id].playTime = plane.playTime;
           this.planes[plane.id].exciting = plane.exciting;
-          return this.planes[plane.id].maxExciting = plane.maxExciting;
+          this.planes[plane.id].maxExciting = plane.maxExciting;
+          return this.planes[plane.id].firing = plane.firing;
         }
       } else {
         if (plane.id === myPlaneId) {
